@@ -314,22 +314,23 @@ function _setSyncBadge(state){
 
 async function _initFirebase(){
   try{
-    if(!firebase.apps.length)firebase.initializeApp(_AT_FB)
-    else firebase.app()
-    _fdb=firebase.firestore()
-    _fdb.settings({experimentalForceLongPolling:true,merge:true})
+    if(!_fdb){
+      if(!firebase.apps.length)firebase.initializeApp(_AT_FB)
+      _fdb=firebase.firestore()
+      _fdb.settings({experimentalForceLongPolling:true,merge:true})
+    }
     _setSyncBadge('sync')
-    // Baixa do Firebase apenas as chaves que estão VAZIAS localmente
-    // Se local já tem dados, eles prevalecem (local é fonte da verdade)
-    const latest=await _fsGetAll()
-    Object.keys(_FS_KEYS).forEach(k=>{
-      if(localStorage.getItem(k)===null&&latest[k]&&latest[k].data){
-        localStorage.setItem(k,latest[k].data)
-      }
-    })
+    // 1. Sobe dados locais para Firebase (migração / garante que PC está no Firebase)
     _syncEnabled=true
-    // Sobe TODOS os dados locais para o Firebase
-    Object.keys(_FS_KEYS).forEach(k=>{const d=DB.get(k);if(d!==null)_fsSync(k,d)})
+    await Promise.all(Object.keys(_FS_KEYS).map(async k=>{
+      const d=DB.get(k);if(d===null)return
+      const fk=_FS_KEYS[k]
+      const docId=_AT_PFX+fk+'_'+Date.now()+'_'+Math.random().toString(36).slice(2,6)
+      await _fdb.collection('assinaturas').doc(docId).set({_ate:true,_key:k,data:JSON.stringify(d),ts:Date.now()}).catch(e=>console.warn('upload:',e))
+    }))
+    // 2. Firebase é a fonte da verdade — baixa tudo
+    await _fsLoad()
+    // 3. Ouve mudanças em tempo real de outros dispositivos
     _fsListen()
     _setSyncBadge('ok')
   }catch(e){console.warn('Firebase:',e);_setSyncBadge('offline')}
