@@ -402,10 +402,22 @@ function _getUsers(){
 function currentUser(){try{return JSON.parse(sessionStorage.getItem('at_session')||'{}')}catch{return{}}}
 function isAdmin(){return currentUser().role==='admin'}
 
-function doLogin(){
+async function doLogin(){
   const u=document.getElementById('loginUser').value.trim()
   const p=document.getElementById('loginPass').value
-  const found=_getUsers().find(x=>x.user===u&&x.pass===p)
+  const btn=document.querySelector('#loginOv .btn-p')
+  if(btn){btn.disabled=true;btn.textContent='Verificando...'}
+  // Tenta local primeiro (rápido)
+  let found=_getUsers().find(x=>x.user===u&&x.pass===p)
+  // Se não achou, busca config atualizado do Firebase antes de negar
+  if(!found){
+    try{
+      if(btn)btn.textContent='Sincronizando...'
+      await _preLoadCfg()
+      found=_getUsers().find(x=>x.user===u&&x.pass===p)
+    }catch(e){console.warn('preload cfg:',e)}
+  }
+  if(btn){btn.disabled=false;btn.textContent='⚡ Entrar'}
   if(found){
     sessionStorage.setItem('at_ok','1')
     sessionStorage.setItem('at_session',JSON.stringify(found))
@@ -416,6 +428,24 @@ function doLogin(){
     toast('Usuário ou senha incorretos','warn')
     document.getElementById('loginPass').value=''
   }
+}
+
+async function _preLoadCfg(){
+  if(!_fdb){
+    try{
+      if(!firebase.apps.length)firebase.initializeApp(_AT_FB)
+      _fdb=firebase.firestore()
+      _fdb.settings({experimentalForceLongPolling:true,merge:true})
+    }catch(e){return}
+  }
+  const snap=await _fdb.collection('assinaturas').where('_ate','==',true).get()
+  // Encontra o config mais recente
+  let latestCfg=null,latestTs=0
+  snap.docs.forEach(doc=>{
+    const d=doc.data()
+    if(d._key===S.CFG&&d.ts>latestTs){latestTs=d.ts;latestCfg=d.data}
+  })
+  if(latestCfg)localStorage.setItem(S.CFG,latestCfg)
 }
 function logout(){
   sessionStorage.removeItem('at_ok')
