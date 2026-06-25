@@ -187,7 +187,8 @@ textarea{resize:vertical;min-height:70px}
         <button class="menu-btn" onclick="toggleSidebar()">☰</button>
         <div class="pg-title" id="pageTitle">Dashboard</div>
       </div>
-      <div style="display:flex;align-items:center;gap:8px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span id="syncBadge" title="Verificando sincronização..." style="font-size:18px;cursor:default;color:var(--txt4)">⬤</span>
         <span style="font-size:11px;color:var(--txt3)" id="topEmp"></span>
       </div>
     </div>
@@ -217,12 +218,91 @@ textarea{resize:vertical;min-height:70px}
 <div id="toast"></div>
 <div id="sideOverlay" style="display:none;position:fixed;inset:0;z-index:199;background:rgba(0,0,0,.5)" onclick="toggleSidebar()"></div>
 
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 <script>
 // ── Storage ──
 const S={EMP:'at_emp',CLI:'at_cli',PRO:'at_pro',ORC:'at_orc',OS:'at_os',FIN:'at_fin',EST:'at_est',CFG:'at_cfg'}
 const DB={
   get:k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch{return null}},
-  set:(k,v)=>localStorage.setItem(k,JSON.stringify(v))
+  set:(k,v)=>{localStorage.setItem(k,JSON.stringify(v));_fsSync(k,v)}
+}
+
+// ── Firebase Sync ──
+const _AT_FB={
+  apiKey:'AIzaSyBq7kbt5t9KIR196u9mEeGn0g0BLkgAlCQ',
+  authDomain:'laberna-dulce.firebaseapp.com',
+  projectId:'laberna-dulce',
+  storageBucket:'laberna-dulce.firebasestorage.app',
+  messagingSenderId:'355799786526',
+  appId:'1:355799786526:web:3bf1f988bb0cda65ddfa0f'
+}
+const _AT_COL='at_eletrica'
+const _FS_MAP={[S.CLI]:'clientes',[S.PRO]:'produtos',[S.ORC]:'orcamentos',[S.OS]:'ordens_servico',[S.FIN]:'financeiro',[S.EST]:'estoque',[S.EMP]:'empresa',[S.CFG]:'configuracoes'}
+let _fdb=null,_syncEnabled=false
+
+function _fsSync(key,data){
+  if(!_fdb||!_syncEnabled)return
+  const doc=_FS_MAP[key];if(!doc)return
+  _fdb.collection(_AT_COL).doc(doc).set({data:JSON.stringify(data),at:new Date().toISOString()}).catch(e=>console.warn('sync:',e))
+}
+
+async function _fsLoad(){
+  if(!_fdb)return
+  const keys=Object.keys(_FS_MAP)
+  for(const k of keys){
+    try{
+      const snap=await _fdb.collection(_AT_COL).doc(_FS_MAP[k]).get()
+      if(snap.exists){const d=JSON.parse(snap.data().data);localStorage.setItem(k,JSON.stringify(d))}
+    }catch(e){console.warn('load:',e)}
+  }
+}
+
+function _fsListen(){
+  if(!_fdb)return
+  Object.entries(_FS_MAP).forEach(([key,doc])=>{
+    _fdb.collection(_AT_COL).doc(doc).onSnapshot(snap=>{
+      if(!snap.exists||!_syncEnabled)return
+      try{
+        const incoming=JSON.parse(snap.data().data)
+        const local=JSON.stringify(JSON.parse(localStorage.getItem(key)||'null'))
+        if(JSON.stringify(incoming)===local)return // sem mudança
+        localStorage.setItem(key,JSON.stringify(incoming))
+        _onRemoteUpdate(key)
+      }catch(e){}
+    })
+  })
+}
+
+function _onRemoteUpdate(key){
+  _setSyncBadge('ok')
+  updateBadges()
+  const pageMap={[S.CLI]:'clientes',[S.PRO]:'produtos',[S.ORC]:'orcamentos',[S.OS]:'os',[S.FIN]:'financeiro',[S.EST]:'estoque',[S.EMP]:'config'}
+  const p=pageMap[key]
+  if(p&&_page===p){const renders={clientes:renderClientes,produtos:renderProdutos,orcamentos:renderOrcamentos,os:renderOS,financeiro:renderFinanceiro,estoque:renderEstoque,config:renderConfig};if(renders[p])renders[p]()}
+  if(_page==='dashboard')renderDashboard()
+  if(!document.getElementById('modalBg').classList.contains('open'))toast('🔄 Dados atualizados de outro dispositivo','info',2500)
+}
+
+function _setSyncBadge(state){
+  const el=document.getElementById('syncBadge');if(!el)return
+  if(state==='ok'){el.style.color='var(--suc)';el.title='Sincronizado'}
+  else if(state==='sync'){el.style.color='var(--acc)';el.title='Sincronizando...'}
+  else{el.style.color='var(--txt4)';el.title='Sem conexão — dados locais'}
+}
+
+async function _initFirebase(){
+  try{
+    if(!firebase.apps.length)firebase.initializeApp(_AT_FB)
+    else firebase.app()
+    _fdb=firebase.firestore()
+    _fdb.settings({experimentalForceLongPolling:true,merge:true})
+    _setSyncBadge('sync')
+    await _fsLoad()
+    _syncEnabled=true
+    _fsListen()
+    _setSyncBadge('ok')
+  }catch(e){console.warn('Firebase:',e);_setSyncBadge('offline')}
 }
 
 // ── Constants ──
@@ -1316,6 +1396,7 @@ function initApp(){
   if(!DB.get(S.CFG))DB.set(S.CFG,{user:'admin',pass:'1234'})
   nav('dashboard')
   updateBadges()
+  _initFirebase().then(()=>{if(_syncEnabled){nav(_page)}}) // re-render após carregar do Firebase
 }
 
 function updateBadges(){
