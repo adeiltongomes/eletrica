@@ -717,10 +717,30 @@ function editarOrcamento(id){
   const hoje=today()
   openModal(id?`Orçamento ${orcNumFmt(o.num)}`:'Novo Orçamento',`
   <div class="fr c3">
-    <div class="fg"><label>Cliente *</label><select id="oCli">
-      <option value="">Selecionar...</option>
-      ${clis.map(c=>`<option value="${c.id}" ${o&&o.cliId===c.id?'selected':''}>${c.nome}</option>`).join('')}
-    </select></div>
+    <div class="fg"><label>Cliente *</label>
+      <div style="display:flex;gap:6px;align-items:center">
+        <select id="oCli" style="flex:1">
+          <option value="">Selecionar...</option>
+          ${clis.map(c=>`<option value="${c.id}" ${o&&o.cliId===c.id?'selected':''}>${c.nome}</option>`).join('')}
+        </select>
+        <button type="button" class="btn btn-o btn-sm" onclick="toggleNovoCliInline()" title="Criar novo cliente" style="flex-shrink:0;padding:9px 12px;font-size:16px;line-height:1">+</button>
+      </div>
+      <div id="novoCliInline" style="display:none;margin-top:8px;background:var(--card2);border:1px solid var(--pri);border-radius:8px;padding:12px">
+        <div style="font-size:10px;font-weight:700;letter-spacing:1.2px;color:var(--pri);margin-bottom:10px">⚡ NOVO CLIENTE</div>
+        <div class="fr c2" style="margin-bottom:8px">
+          <div class="fg"><label>Nome *</label><input id="ncNome" placeholder="Nome completo"></div>
+          <div class="fg"><label>Telefone / WhatsApp</label><input id="ncFone" placeholder="(00) 00000-0000"></div>
+        </div>
+        <div class="fr c2" style="margin-bottom:8px">
+          <div class="fg"><label>Email</label><input id="ncEmail" placeholder="email@exemplo.com"></div>
+          <div class="fg"><label>Endereço</label><input id="ncEnd" placeholder="Rua, número, bairro"></div>
+        </div>
+        <div style="display:flex;gap:6px;justify-content:flex-end">
+          <button type="button" class="btn btn-o btn-sm" onclick="toggleNovoCliInline()">Cancelar</button>
+          <button type="button" class="btn btn-p btn-sm" onclick="salvarClienteRapido()">✓ Salvar e Selecionar</button>
+        </div>
+      </div>
+    </div>
     <div class="fg"><label>Data</label><input id="oData" type="date" value="${o?o.data:hoje}"></div>
     <div class="fg"><label>Validade (dias)</label><input id="oVal" type="number" value="${o?o.valDias||30:30}" min="1"></div>
   </div>
@@ -858,6 +878,34 @@ function excluirOrcamento(id){
   confirmarModal('Excluir este orçamento permanentemente?',()=>{
     DB.set(S.ORC,(DB.get(S.ORC)||[]).filter(x=>x.id!==id));toast('Orçamento excluído');renderOrcamentos()
   })
+}
+
+function toggleNovoCliInline(){
+  const el=document.getElementById('novoCliInline')
+  if(!el)return
+  const open=el.style.display==='none'
+  el.style.display=open?'block':'none'
+  if(open)setTimeout(()=>document.getElementById('ncNome')?.focus(),50)
+}
+
+function salvarClienteRapido(){
+  const nome=(document.getElementById('ncNome')?.value||'').trim()
+  if(!nome)return toast('Informe o nome do cliente','warn')
+  const list=DB.get(S.CLI)||[]
+  const newCli={id:genId(),nome,fone:document.getElementById('ncFone')?.value||'',
+    email:document.getElementById('ncEmail')?.value||'',end:document.getElementById('ncEnd')?.value||'',obs:''}
+  list.push(newCli)
+  DB.set(S.CLI,list)
+  const sel=document.getElementById('oCli')
+  if(sel){
+    const opt=document.createElement('option')
+    opt.value=newCli.id
+    opt.textContent=newCli.nome
+    opt.selected=true
+    sel.appendChild(opt)
+  }
+  toggleNovoCliInline()
+  toast('Cliente criado e selecionado')
 }
 
 // ── OS — Ordens de Serviço ──
