@@ -237,39 +237,55 @@ const _AT_FB={
   messagingSenderId:'355799786526',
   appId:'1:355799786526:web:3bf1f988bb0cda65ddfa0f'
 }
-const _AT_COL='at_eletrica'
-const _FS_MAP={[S.CLI]:'clientes',[S.PRO]:'produtos',[S.ORC]:'orcamentos',[S.OS]:'ordens_servico',[S.FIN]:'financeiro',[S.EST]:'estoque',[S.EMP]:'empresa',[S.CFG]:'configuracoes'}
+// Usa a coleção 'assinaturas' (já permitida pelas regras) com prefixo 'ate_' para AccertTech
+// Cada sincronização cria um novo documento versionado (create-only = funciona com as regras atuais)
+const _AT_PFX='ate_' // prefixo AccertTech Elétrica
+const _FS_KEYS={[S.CLI]:'cli',[S.PRO]:'pro',[S.ORC]:'orc',[S.OS]:'os',[S.FIN]:'fin',[S.EST]:'est',[S.EMP]:'emp',[S.CFG]:'cfg'}
 let _fdb=null,_syncEnabled=false
 
 function _fsSync(key,data){
   if(!_fdb||!_syncEnabled)return
-  const doc=_FS_MAP[key];if(!doc)return
-  _fdb.collection(_AT_COL).doc(doc).set({data:JSON.stringify(data),at:new Date().toISOString()}).catch(e=>console.warn('sync:',e))
+  const k=_FS_KEYS[key];if(!k)return
+  const docId=_AT_PFX+k+'_'+Date.now()
+  _fdb.collection('assinaturas').doc(docId).set({
+    _ate:true,_key:key,data:JSON.stringify(data),ts:Date.now()
+  }).catch(e=>console.warn('sync:',e))
 }
 
 async function _fsLoad(){
   if(!_fdb)return
-  const keys=Object.keys(_FS_MAP)
-  for(const k of keys){
-    try{
-      const snap=await _fdb.collection(_AT_COL).doc(_FS_MAP[k]).get()
-      if(snap.exists){const d=JSON.parse(snap.data().data);localStorage.setItem(k,JSON.stringify(d))}
-    }catch(e){console.warn('load:',e)}
-  }
+  try{
+    const snap=await _fdb.collection('assinaturas').where('_ate','==',true).get()
+    const latest={}
+    snap.docs.forEach(doc=>{
+      const d=doc.data()
+      if(!d._key)return
+      if(!latest[d._key]||d.ts>latest[d._key].ts)latest[d._key]=d
+    })
+    Object.entries(latest).forEach(([key,d])=>{
+      if(d.data)localStorage.setItem(key,d.data)
+    })
+  }catch(e){console.warn('fsLoad:',e)}
 }
 
 function _fsListen(){
   if(!_fdb)return
-  Object.entries(_FS_MAP).forEach(([key,doc])=>{
-    _fdb.collection(_AT_COL).doc(doc).onSnapshot(snap=>{
-      if(!snap.exists||!_syncEnabled)return
-      try{
-        const incoming=JSON.parse(snap.data().data)
-        const local=JSON.stringify(JSON.parse(localStorage.getItem(key)||'null'))
-        if(JSON.stringify(incoming)===local)return // sem mudança
-        localStorage.setItem(key,JSON.stringify(incoming))
+  _fdb.collection('assinaturas').where('_ate','==',true).onSnapshot(snap=>{
+    if(!_syncEnabled)return
+    const latest={}
+    snap.docs.forEach(doc=>{
+      const d=doc.data()
+      if(!d._key)return
+      if(!latest[d._key]||d.ts>latest[d._key].ts)latest[d._key]=d
+    })
+    Object.entries(latest).forEach(([key,d])=>{
+      const incoming=d.data
+      if(!incoming)return
+      const current=localStorage.getItem(key)
+      if(incoming!==current){
+        localStorage.setItem(key,incoming)
         _onRemoteUpdate(key)
-      }catch(e){}
+      }
     })
   })
 }
@@ -300,6 +316,8 @@ async function _initFirebase(){
     _setSyncBadge('sync')
     await _fsLoad()
     _syncEnabled=true
+    // Envia dados locais para o Firebase (garante que PC sincronize com celular)
+    Object.keys(_FS_KEYS).forEach(k=>{const d=DB.get(k);if(d!==null)_fsSync(k,d)})
     _fsListen()
     _setSyncBadge('ok')
   }catch(e){console.warn('Firebase:',e);_setSyncBadge('offline')}
