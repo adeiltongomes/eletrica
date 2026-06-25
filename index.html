@@ -319,9 +319,16 @@ async function _initFirebase(){
     _fdb=firebase.firestore()
     _fdb.settings({experimentalForceLongPolling:true,merge:true})
     _setSyncBadge('sync')
-    await _fsLoad()
+    // Baixa do Firebase apenas as chaves que estão VAZIAS localmente
+    // Se local já tem dados, eles prevalecem (local é fonte da verdade)
+    const latest=await _fsGetAll()
+    Object.keys(_FS_KEYS).forEach(k=>{
+      if(localStorage.getItem(k)===null&&latest[k]&&latest[k].data){
+        localStorage.setItem(k,latest[k].data)
+      }
+    })
     _syncEnabled=true
-    // Envia dados locais para o Firebase (garante que PC sincronize com celular)
+    // Sobe TODOS os dados locais para o Firebase
     Object.keys(_FS_KEYS).forEach(k=>{const d=DB.get(k);if(d!==null)_fsSync(k,d)})
     _fsListen()
     _setSyncBadge('ok')
