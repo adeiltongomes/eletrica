@@ -422,11 +422,11 @@ async function doLogin(){
   if(btn){btn.disabled=true;btn.textContent='Verificando...'}
   // Tenta local primeiro (rápido)
   let found=_getUsers().find(x=>x.user===u&&x.pass===p)
-  // Se não achou, busca config atualizado do Firebase antes de negar
+  // Se não achou, aguarda o Firebase (já iniciado no DOMContentLoaded)
   if(!found){
     try{
       if(btn)btn.textContent='Sincronizando...'
-      await _preLoadCfg()
+      await (_cfgReady||_preLoadCfg())
       found=_getUsers().find(x=>x.user===u&&x.pass===p)
     }catch(e){console.warn('preload cfg:',e)}
   }
@@ -1568,18 +1568,20 @@ function updateBadges(){
   if(bos){bos.style.display=abertas?'':'none';bos.textContent=abertas}
 }
 
+let _cfgReady=null
 document.addEventListener('DOMContentLoaded',()=>{
   if(sessionStorage.getItem('at_ok')){
     document.getElementById('loginOv').style.display='none'
     document.getElementById('app').style.display='flex'
     initApp()
   }else{
-    // Auto-login if no password set
-    const cfg=DB.get(S.CFG)||{}
-    if(!cfg.pass||cfg.pass==='1234'){
-      document.getElementById('loginUser').value='admin'
-      document.getElementById('loginPass').value='1234'
-    }
+    // Inicia busca do Firebase em background imediatamente
+    _cfgReady=_preLoadCfg().catch(()=>{})
+    const el=document.getElementById('loginInfo')
+    if(el){el.textContent='🔄 Conectando...';el.style.color='#aaa'}
+    _cfgReady.then(()=>{
+      if(el){el.textContent='✓ Pronto';el.style.color='#4f4';setTimeout(()=>{el.textContent=''},1500)}
+    })
     document.getElementById('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()})
   }
 })
