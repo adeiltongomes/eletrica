@@ -152,8 +152,10 @@ textarea{resize:vertical;min-height:70px}
     <div class="lbox-s">Orçamentos Elétrica</div>
     <input type="text" id="loginUser" placeholder="Usuário" autocomplete="username">
     <input type="password" id="loginPass" placeholder="Senha" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    <div id="loginInfo" style="font-size:12px;color:#aaa;min-height:18px;margin:4px 0;text-align:center"></div>
     <br>
     <button class="btn btn-p" onclick="doLogin()">⚡ Entrar</button>
+    <button class="btn" style="margin-top:8px;font-size:12px;background:transparent;border:1px solid #555;color:#aaa" onclick="debugFirebase()">🔍 Ver usuários do Firebase</button>
   </div>
 </div>
 
@@ -450,6 +452,20 @@ async function _preLoadCfg(){
       console.log('Config sincronizado do Firebase')
     }
   }catch(e){console.warn('preLoadCfg:',e)}
+}
+async function debugFirebase(){
+  const el=document.getElementById('loginInfo')
+  el.textContent='Buscando no Firebase...'
+  try{
+    await _preLoadCfg()
+    const users=_getUsers()
+    const list=users.map(x=>x.user+'('+x.role+')').join(' | ')
+    el.style.color='#4f4'
+    el.textContent='Firebase OK. Usuários: '+list
+  }catch(e){
+    el.style.color='#f44'
+    el.textContent='Erro Firebase: '+e.message
+  }
 }
 function logout(){
   sessionStorage.removeItem('at_ok')
