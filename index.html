@@ -374,14 +374,23 @@ function toggleSidebar(){
   ov.style.display=open?'block':'none'
 }
 
-// ── Auth ──
-function doLogin(){
+// ── Auth / Sessão ──
+function _getUsers(){
   const cfg=DB.get(S.CFG)||{}
+  // compatibilidade com formato antigo (só um user)
+  if(cfg.users)return cfg.users
+  return [{user:cfg.user||'admin',pass:cfg.pass||'1234',role:'admin',nome:'Admin'}]
+}
+function currentUser(){try{return JSON.parse(sessionStorage.getItem('at_session')||'{}')}catch{return{}}}
+function isAdmin(){return currentUser().role==='admin'}
+
+function doLogin(){
   const u=document.getElementById('loginUser').value.trim()
   const p=document.getElementById('loginPass').value
-  const user=cfg.user||'admin', pass=cfg.pass||'1234'
-  if(u===user&&p===pass){
+  const found=_getUsers().find(x=>x.user===u&&x.pass===p)
+  if(found){
     sessionStorage.setItem('at_ok','1')
+    sessionStorage.setItem('at_session',JSON.stringify(found))
     document.getElementById('loginOv').style.display='none'
     document.getElementById('app').style.display='flex'
     initApp()
@@ -392,6 +401,7 @@ function doLogin(){
 }
 function logout(){
   sessionStorage.removeItem('at_ok')
+  sessionStorage.removeItem('at_session')
   location.reload()
 }
 
@@ -755,7 +765,10 @@ function renderOrcamentos(){
   const list=DB.get(S.ORC)||[]
   const filt=['todos','rascunho','enviado','aprovado','executado','recusado']
   const cur=window._orcFilt||'todos'
-  const shown=cur==='todos'?list:list.filter(o=>o.status===cur)
+  // Filtra por criador se não for admin
+  const u=currentUser()
+  let shown=isAdmin()?list:list.filter(o=>!o.criadoPor||o.criadoPor===u.user)
+  if(cur!=='todos')shown=shown.filter(o=>o.status===cur)
   const sorted=[...shown].sort((a,b)=>b.num-a.num)
   document.getElementById('content').innerHTML=`
   <div class="sh"><div><div class="stitle">Orçamentos</div><div class="ssub">${list.length} total</div></div>
@@ -948,7 +961,8 @@ function salvarOrcamento(id){
     cliId,data:v('oData'),valDias,validade:addDays(v('oData'),valDias),
     endObra:v('oEnd'),resp:v('oResp'),desc,pgto:v('oPgto'),
     status:v('oStatus'),obs:v('oObs'),
-    itens:_orcItens,sub,totalF
+    itens:_orcItens,sub,totalF,
+    criadoPor:id?(list.find(x=>x.id===id)?.criadoPor||currentUser().user):currentUser().user
   }
   if(id){const i=list.findIndex(x=>x.id===id);if(i>=0)list[i]=data;else list.push(data)}else list.push(data)
   DB.set(S.ORC,list);closeModal();toast('Orçamento salvo');renderOrcamentos()
@@ -1199,6 +1213,8 @@ function excluirLancamento(id){
 function renderConfig(){
   const e=getEmpresa()
   const cfg=DB.get(S.CFG)||{}
+  const users=_getUsers()
+  const roleLabel={admin:'🔑 Admin (acesso total)',vendedor:'📋 Vendedor (só orçamentos)'}
   document.getElementById('content').innerHTML=`
   <div class="stitle" style="margin-bottom:16px">Configurações da Empresa</div>
   <div class="card" style="max-width:720px;margin-bottom:16px">
@@ -1222,14 +1238,69 @@ function renderConfig(){
     <div class="fr"><div class="fg"><label>Observações padrão nos orçamentos</label><textarea id="cfgObs">${e.obsOrc||''}</textarea></div></div>
     <button class="btn btn-p" onclick="salvarEmpresa()">Salvar Dados da Empresa</button>
   </div>
-  <div class="stitle" style="margin-bottom:12px">Acesso ao Sistema</div>
-  <div class="card" style="max-width:420px">
-    <div class="fr c2">
-      <div class="fg"><label>Usuário</label><input id="cfgUser" value="${cfg.user||'admin'}"></div>
-      <div class="fg"><label>Nova Senha</label><input id="cfgPass" type="password" placeholder="Deixe em branco para manter"></div>
-    </div>
-    <button class="btn btn-p" onclick="salvarAcesso()">Salvar Acesso</button>
+  <div class="sh" style="max-width:620px;margin-bottom:10px">
+    <div><div class="stitle">Usuários do Sistema</div><div class="ssub">Gerencie quem acessa o sistema e o nível de permissão</div></div>
+    <button class="btn btn-p btn-sm" onclick="editarUsuario()">+ Novo Usuário</button>
+  </div>
+  <div class="card" style="max-width:620px;margin-bottom:16px;padding:0">
+    <table class="tbl">
+      <thead><tr><th>Usuário</th><th>Nome</th><th>Perfil de Acesso</th><th></th></tr></thead>
+      <tbody>${users.map(u=>`<tr>
+        <td style="font-weight:700;color:var(--txt)">${u.user}</td>
+        <td>${u.nome||'—'}</td>
+        <td><span class="bdg ${u.role==='admin'?'bdg-y':'bdg-b'}">${roleLabel[u.role]||u.role}</span></td>
+        <td>${u.role!=='admin'?`<button class="btn btn-g btn-ico" onclick="editarUsuario('${u.user}')">✏️</button>
+            <button class="btn btn-g btn-ico" onclick="excluirUsuario('${u.user}')">🗑️</button>`:'<span style="color:var(--txt4);font-size:11px">protegido</span>'}</td>
+      </tr>`).join('')}</tbody>
+    </table>
   </div>`
+}
+
+function editarUsuario(user){
+  const cfg=DB.get(S.CFG)||{}
+  const users=_getUsers()
+  const u=user?users.find(x=>x.user===user)||{}:{}
+  openModal(user?'Editar Usuário':'Novo Usuário',`
+  <div class="fr c2">
+    <div class="fg"><label>Login (usuário) *</label><input id="uUser" value="${u.user||''}" ${user?'readonly style="opacity:.6"':''}></div>
+    <div class="fg"><label>Nome de exibição *</label><input id="uNome" value="${u.nome||''}"></div>
+  </div>
+  <div class="fr c2">
+    <div class="fg"><label>${user?'Nova Senha (em branco = manter)':'Senha *'}</label><input id="uPass" type="password" placeholder="${user?'Deixe em branco para manter':''}"></div>
+    <div class="fg"><label>Perfil de Acesso</label><select id="uRole">
+      <option value="vendedor" ${(u.role||'vendedor')==='vendedor'?'selected':''}>📋 Vendedor — só vê seus orçamentos</option>
+      <option value="admin" ${u.role==='admin'?'selected':''}>🔑 Admin — acesso total</option>
+    </select></div>
+  </div>`,
+  `<button class="btn btn-o btn-sm" onclick="closeModal()">Cancelar</button>
+   <button class="btn btn-p btn-sm" onclick="salvarUsuario('${user||''}')">Salvar</button>`)
+}
+
+function salvarUsuario(editUser){
+  const userLogin=editUser||v('uUser').trim()
+  const nome=v('uNome').trim()
+  const pass=v('uPass')
+  const role=v('uRole')
+  if(!userLogin)return toast('Informe o login do usuário','warn')
+  if(!nome)return toast('Informe o nome','warn')
+  if(!editUser&&!pass)return toast('Informe a senha','warn')
+  const cfg=DB.get(S.CFG)||{}
+  const users=_getUsers()
+  const idx=users.findIndex(x=>x.user===userLogin)
+  const data={user:userLogin,nome,role,modules:role==='admin'?[]:['orcamentos']}
+  if(idx>=0){data.pass=pass||users[idx].pass;users[idx]=data}
+  else{if(users.find(x=>x.user===userLogin))return toast('Usuário já existe','warn');data.pass=pass;users.push(data)}
+  cfg.users=users
+  DB.set(S.CFG,cfg)
+  closeModal();toast('Usuário salvo');renderConfig()
+}
+
+function excluirUsuario(user){
+  confirmarModal(`Excluir o usuário <strong>${user}</strong>?`,()=>{
+    const cfg=DB.get(S.CFG)||{}
+    cfg.users=_getUsers().filter(x=>x.user!==user)
+    DB.set(S.CFG,cfg);toast('Usuário excluído');renderConfig()
+  })
 }
 
 function salvarEmpresa(){
@@ -1239,13 +1310,6 @@ function salvarEmpresa(){
   toast('Dados da empresa salvos')
 }
 
-function salvarAcesso(){
-  const cfg=DB.get(S.CFG)||{}
-  cfg.user=v('cfgUser')||'admin'
-  const np=v('cfgPass')
-  if(np)cfg.pass=np
-  DB.set(S.CFG,cfg);toast('Acesso atualizado')
-}
 
 // ── Print ──
 function docHead(titulo){
@@ -1390,13 +1454,33 @@ function v(id){const el=document.getElementById(id);return el?el.value:''}
 // ── Init ──
 function initApp(){
   const e=getEmpresa()
+  const u=currentUser()
+  // Garante usuário Alvaro cadastrado por padrão
+  const cfg=DB.get(S.CFG)||{}
+  if(!cfg.users){
+    cfg.users=[
+      {user:cfg.user||'admin',pass:cfg.pass||'1234',role:'admin',nome:'Admin'},
+      {user:'alvaro',pass:'alvaro2026',role:'vendedor',nome:'Alvaro',modules:['orcamentos']}
+    ]
+    DB.set(S.CFG,cfg)
+  }else if(!cfg.users.find(x=>x.user==='alvaro')){
+    cfg.users.push({user:'alvaro',pass:'alvaro2026',role:'vendedor',nome:'Alvaro',modules:['orcamentos']})
+    DB.set(S.CFG,cfg)
+  }
+  // Topbar: empresa + usuário logado
   const topEmp=document.getElementById('topEmp')
-  if(topEmp)topEmp.textContent=e.fantasia||e.nome||'AccertTech'
-  // Init default data if empty
-  if(!DB.get(S.CFG))DB.set(S.CFG,{user:'admin',pass:'1234'})
-  nav('dashboard')
+  if(topEmp)topEmp.textContent=(e.fantasia||e.nome||'AccertTech')+' — '+( u.nome||u.user||'')
+  // Restringe menu para não-admin
+  if(!isAdmin()){
+    document.querySelectorAll('.sb-item').forEach(el=>{
+      if(el.id&&el.id!=='sb-orcamentos')el.style.display='none'
+    })
+    document.querySelectorAll('.sb-sec').forEach(el=>el.style.display='none')
+    document.querySelector('.sb-bot').style.display='flex'
+  }
+  nav(isAdmin()?'dashboard':'orcamentos')
   updateBadges()
-  _initFirebase().then(()=>{if(_syncEnabled){nav(_page)}}) // re-render após carregar do Firebase
+  _initFirebase().then(()=>{if(_syncEnabled){nav(_page)}})
 }
 
 function updateBadges(){
