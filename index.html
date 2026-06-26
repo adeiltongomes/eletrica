@@ -759,10 +759,24 @@ async function gerarLinkAssinatura(orcId){
       _fdb=firebase.firestore()
       _fdb.settings({experimentalForceLongPolling:true,merge:true})
     }
+    const _nomesAtuais=itens=>(itens||[]).map(it=>{
+      const pAtual=it.prodId&&it.prodId!=='_custom'?(DB.get(S.PRO)||[]).find(p=>p.id===it.prodId):null
+      return{...it,nome:pAtual?pAtual.nome:it.nome}
+    })
     let token=o.sigToken
     if(token){
       const snap=await _fdb.collection('sigs').doc(token).get()
-      if(snap.exists){_showSigModal(token,snap.data());return}
+      if(snap.exists){
+        const sigAtual=snap.data()
+        const itensAtualizados=_nomesAtuais(sigAtual.orc?.itens)
+        const orcAtualizado={...sigAtual.orc,itens:itensAtualizados,
+          totalF:o.totalF||0,sub:o.sub||0,desc:o.desc||0,pgto:o.pgto||'',obs:o.obs||'',endObra:o.endObra||''}
+        const sigAtualizado={...sigAtual,orc:orcAtualizado,
+          empresa:{nome:emp.nome,fantasia:emp.fantasia,fone:emp.fone,wa:emp.wa||''},
+          cli:{nome:cli.nome||'',fone:cli.fone||''}}
+        if(!sigAtual.signed)await _fdb.collection('sigs').doc(token).update({orc:orcAtualizado,empresa:sigAtualizado.empresa,cli:sigAtualizado.cli})
+        _showSigModal(token,sigAtualizado);return
+      }
     }
     // Gera token de 8 chars base-36
     token=(Math.random().toString(36).slice(2,6)+Math.random().toString(36).slice(2,6)).slice(0,8)
@@ -770,7 +784,7 @@ async function gerarLinkAssinatura(orcId){
       orcId,
       empresa:{nome:emp.nome,fantasia:emp.fantasia,fone:emp.fone,wa:emp.wa||''},
       orc:{num:o.num,data:o.data,validade:o.validade,endObra:o.endObra||'',pgto:o.pgto||'',obs:o.obs||'',totalF:o.totalF||0,sub:o.sub||0,desc:o.desc||0,
-        itens:(o.itens||[]).map(it=>{const pAtual=it.prodId&&it.prodId!=='_custom'?(DB.get(S.PRO)||[]).find(p=>p.id===it.prodId):null;return{...it,nome:pAtual?pAtual.nome:it.nome}})},
+        itens:_nomesAtuais(o.itens)},
       cli:{nome:cli.nome||'',fone:cli.fone||''},
       signed:false,signedAt:null,signedNome:null,createdAt:Date.now()
     }
