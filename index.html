@@ -572,6 +572,7 @@ async function _loadSigPage(token){
     }
     const sig=snap.data()
     el.innerHTML=sig.signed?_sigJaAssinou(sig):_sigForm(sig,token)
+    if(!sig.signed)_sigInitCanvas()
   }catch(e){
     el.innerHTML=`<div style="text-align:center;padding:60px 20px;color:#EF5350">Erro ao carregar: ${e.message}</div>`
   }
@@ -589,9 +590,10 @@ function _sigJaAssinou(sig){
     <div style="font-size:52px;margin-bottom:14px">✅</div>
     <div style="font-size:20px;font-weight:800;color:#4CAF50;margin-bottom:8px">Orçamento aprovado!</div>
     <div style="font-size:14px;color:#B0BCCF;margin-bottom:4px">
-      ${sig.signedNome?`Assinado por <strong style="color:#E8EDF5">${sig.signedNome}</strong>`:'Este orçamento já foi aprovado'}
+      ${sig.signedNome?`Assinado por <strong style="color:#E8EDF5">${sig.signedNome}</strong>`:'Orçamento aprovado com assinatura digital'}
     </div>
-    ${dt?`<div style="font-size:12px;color:#6B7A94;margin-bottom:28px">em ${dt}</div>`:'<div style="margin-bottom:28px"></div>'}
+    ${dt?`<div style="font-size:12px;color:#6B7A94;margin-bottom:${sig.signedImg?'12px':'28px'}">em ${dt}</div>`:'<div style="margin-bottom:28px"></div>'}
+    ${sig.signedImg?`<div style="background:#0A0D14;border:1px solid #2E3850;border-radius:10px;padding:10px;margin-bottom:20px;display:inline-block"><img src="${sig.signedImg}" style="max-width:280px;height:auto;display:block"></div>`:'<div style="margin-bottom:8px"></div>'}
     <div style="background:#1A1F2E;border:1px solid #252D40;border-radius:14px;padding:16px 20px;margin-bottom:20px;text-align:left">
       <div style="font-size:11px;color:#6B7A94;margin-bottom:3px">Orçamento</div>
       <div style="font-size:15px;font-weight:800;color:#E8EDF5">ORC-${String(sig.orc?.num||0).padStart(4,'0')}</div>
@@ -668,8 +670,10 @@ function _sigForm(sig,token){
   <div style="background:#1A1F2E;border:2px solid #2196F3;border-radius:14px;padding:18px;margin-bottom:16px">
     <div style="font-size:14px;font-weight:700;color:#E8EDF5;margin-bottom:4px">Aprovar este orçamento</div>
     <div style="font-size:12px;color:#6B7A94;margin-bottom:14px">Ao assinar, você confirma a aprovação e autoriza o início dos serviços.</div>
-    <input id="sigNome" placeholder="Seu nome completo *" style="width:100%;padding:12px 14px;background:#0A0D14;border:1.5px solid #2E3850;border-radius:9px;color:#E8EDF5;font-size:15px;font-family:inherit;outline:none;margin-bottom:12px;box-sizing:border-box" oninput="this.style.borderColor=this.value.trim()?'#4CAF50':'#2E3850'">
-    <button onclick="_assinarOrcamento('${token}')" style="width:100%;padding:15px;background:#4CAF50;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:.3px">
+    <div style="font-size:11px;color:#6B7A94;margin-bottom:6px">✍️ Assine abaixo com o dedo ou mouse:</div>
+    <canvas id="sigCanvas" width="600" height="160" style="width:100%;height:130px;display:block;border:2px solid #2E3850;border-radius:9px;background:#0A0D14;touch-action:none;cursor:crosshair"></canvas>
+    <button onclick="_sigClearCanvas()" style="margin-top:6px;padding:5px 14px;background:transparent;border:1px solid #2E3850;border-radius:6px;color:#6B7A94;font-size:12px;cursor:pointer;font-family:inherit">Limpar</button>
+    <button onclick="_assinarOrcamento('${token}')" style="width:100%;padding:15px;background:#4CAF50;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:.3px;margin-top:12px">
       ✅ Confirmar e Assinar
     </button>
   </div>
@@ -682,13 +686,56 @@ function _sigForm(sig,token){
   `
 }
 
+let _sigDrawn=false
+
+function _sigInitCanvas(){
+  const c=document.getElementById('sigCanvas')
+  if(!c)return
+  _sigDrawn=false
+  const ctx=c.getContext('2d')
+  ctx.strokeStyle='#4CAF50'
+  ctx.lineWidth=3
+  ctx.lineCap='round'
+  ctx.lineJoin='round'
+  let drawing=false,lx=0,ly=0
+  function _pt(e){
+    const r=c.getBoundingClientRect()
+    const sx=c.width/r.width,sy=c.height/r.height
+    const src=e.touches?e.touches[0]:e
+    return{x:(src.clientX-r.left)*sx,y:(src.clientY-r.top)*sy}
+  }
+  function _start(e){e.preventDefault();drawing=true;const p=_pt(e);lx=p.x;ly=p.y;ctx.beginPath();ctx.arc(p.x,p.y,1.5,0,Math.PI*2);ctx.fillStyle='#4CAF50';ctx.fill();_sigDrawn=true;c.style.borderColor='#4CAF50'}
+  function _move(e){if(!drawing)return;e.preventDefault();const p=_pt(e);ctx.beginPath();ctx.moveTo(lx,ly);ctx.lineTo(p.x,p.y);ctx.stroke();lx=p.x;ly=p.y}
+  function _end(){drawing=false}
+  c.addEventListener('mousedown',_start)
+  c.addEventListener('mousemove',_move)
+  c.addEventListener('mouseup',_end)
+  c.addEventListener('mouseleave',_end)
+  c.addEventListener('touchstart',_start,{passive:false})
+  c.addEventListener('touchmove',_move,{passive:false})
+  c.addEventListener('touchend',_end)
+}
+
+function _sigClearCanvas(){
+  const c=document.getElementById('sigCanvas')
+  if(!c)return
+  c.getContext('2d').clearRect(0,0,c.width,c.height)
+  c.style.borderColor='#2E3850'
+  _sigDrawn=false
+}
+
 async function _assinarOrcamento(token){
-  const nome=(document.getElementById('sigNome')?.value||'').trim()
-  if(!nome){document.getElementById('sigNome').style.borderColor='#F44336';return alert('Informe seu nome completo para assinar.')}
+  if(!_sigDrawn){
+    const c=document.getElementById('sigCanvas')
+    if(c)c.style.borderColor='#F44336'
+    return alert('Por favor, assine no campo acima antes de confirmar.')
+  }
+  const c=document.getElementById('sigCanvas')
+  const imgData=c?c.toDataURL('image/png'):null
   const btn=document.querySelector('#sigContent button[onclick*="_assinarOrcamento"]')
   if(btn){btn.disabled=true;btn.textContent='Assinando...'}
   try{
-    await _fdb.collection('sigs').doc(token).update({signed:true,signedAt:Date.now(),signedNome:nome})
+    await _fdb.collection('sigs').doc(token).update({signed:true,signedAt:Date.now(),signedImg:imgData,signedNome:null})
     const snap=await _fdb.collection('sigs').doc(token).get()
     document.getElementById('sigContent').innerHTML=_sigJaAssinou(snap.data())
   }catch(e){
