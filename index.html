@@ -671,9 +671,11 @@ async function _loadSigPage(token){
   }
 }
 
+let _pubSig=null
+
 function _sigJaAssinou(sig){
+  _pubSig=sig
   const e=sig.empresa||{}
-  const waLink=_waLink(e.wa||e.fone||'')
   const wa=sig.empresa?.wa||sig.empresa?.fone||''
   const dt=sig.signedAt?new Date(sig.signedAt).toLocaleString('pt-BR'):''
   const waMsg=wa?_waLink(wa)+'?text='+encodeURIComponent('Olá! Tenho dúvidas sobre meu orçamento.'):''
@@ -687,6 +689,9 @@ function _sigJaAssinou(sig){
     </div>
     ${dt?`<div style="font-size:12px;color:#6B7A94;margin-bottom:${sig.signedImg?'12px':'28px'}">em ${dt}</div>`:'<div style="margin-bottom:28px"></div>'}
     ${sig.signedImg?`<div style="background:#0A0D14;border:1px solid #2E3850;border-radius:10px;padding:10px;margin-bottom:20px;display:inline-block"><img src="${sig.signedImg}" style="max-width:280px;height:auto;display:block"></div>`:'<div style="margin-bottom:8px"></div>'}
+    <button onclick="_verDocAssinadoPub()" style="width:100%;padding:14px;background:#2196F3;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:14px">
+      📄 Ver orçamento assinado
+    </button>
     <div style="background:#1A1F2E;border:1px solid #252D40;border-radius:14px;padding:16px 20px;margin-bottom:16px;text-align:left">
       <div style="font-size:11px;color:#6B7A94;margin-bottom:3px">Orçamento</div>
       <div style="font-size:15px;font-weight:800;color:#E8EDF5">ORC-${String(sig.orc?.num||0).padStart(4,'0')}</div>
@@ -704,6 +709,103 @@ function _sigJaAssinou(sig){
       💬 Chamar no WhatsApp
     </a>`:''}
   </div>`
+}
+
+function _verDocAssinadoPub(){
+  const sig=_pubSig;if(!sig)return
+  const o=sig.orc||{},cli=sig.cli||{},e=sig.empresa||{}
+  const dt=sig.signedAt?new Date(sig.signedAt).toLocaleString('pt-BR'):''
+  const cats=[...new Set((o.itens||[]).map(it=>it.cat||'outro'))]
+  let numG=0,rowsHtml=''
+  const CAT_ICO={inter_int:'🔘',tomada:'🔌',led_spot:'💡',led_amb:'🌟',led_fita:'〰️',cabo_fio:'🔗',qd:'⚡',disjuntor:'⚡',automacao:'🤖',servico:'🔧',outro:'📦'}
+  const CAT_NOM={inter_int:'Interruptor Inteligente',tomada:'Tomada',led_spot:'Spot LED',led_amb:'LED Ambiente',led_fita:'Fita LED',cabo_fio:'Cabo / Fio',qd:'Quadro de Distribuição',disjuntor:'Disjuntor',automacao:'Automação',servico:'Serviço',outro:'Outros'}
+  cats.forEach(cat=>{
+    if(cats.length>1)rowsHtml+=`<tr><td colspan="6" style="background:#EEF4FF;color:#1565C0;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;padding:6px 10px">${CAT_ICO[cat]||'📦'} ${CAT_NOM[cat]||cat}</td></tr>`
+    ;(o.itens||[]).filter(it=>(it.cat||'outro')===cat).forEach(it=>{
+      numG++
+      const imgSrc=it.prodId&&it.prodId!=='_custom'?_imgCache[it.prodId]:null
+      const attrTags=[]
+      if(it.cor)attrTags.push(`<span class="atag">Cor: ${it.cor}</span>`)
+      if(it.botoes)attrTags.push(`<span class="atag">${it.botoes} bot${parseInt(it.botoes)>1?'ões':'ão'}</span>`)
+      if(it.temTomada)attrTags.push(`<span class="atag">c/ tomada</span>`)
+      if(it.wifi)attrTags.push(`<span class="atag">Wi-Fi</span>`)
+      if(it.bitola)attrTags.push(`<span class="atag">Bitola: ${it.bitola}mm²</span>`)
+      if(it.potencia)attrTags.push(`<span class="atag">${it.potencia}</span>`)
+      if(it.tempCor)attrTags.push(`<span class="atag">${it.tempCor}</span>`)
+      const attrs=attrTags.join('')
+      const locais=(it.locais||[]).map(l=>`<span class="local-tag">${l}</span>`).join(' ')
+      rowsHtml+=`<tr>
+        <td class="num">${numG}</td>
+        <td><div style="display:flex;gap:8px;align-items:flex-start">${imgSrc?`<img src="${imgSrc}" style="width:48px;height:48px;object-fit:cover;border-radius:5px;flex-shrink:0;border:1px solid #e0e0e0">`:''}<div>${it.nome||'—'}${attrs?`<br>${attrs}`:''}${locais?`<br>${locais}`:''}${it.obs?`<br><span class="obs-item">${it.obs}</span>`:''}</div></div></td>
+        <td class="qtd">${it.qtd||1}</td><td>${it.un||'un'}</td>
+        <td class="pr">${fmtR(it.pu||0)}</td><td class="sub">${fmtR(it.sub||0)}</td>
+      </tr>`
+    })
+  })
+  const w=window.open('','_blank','width=900,height=700')
+  w.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>ORC-${String(o.num||0).padStart(4,'0')} — Documento Assinado</title><style>
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',Arial,sans-serif;background:#fff;color:#1A1A1A;font-size:12px;padding:20px}
+.hdr{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1565C0;padding-bottom:10px;margin-bottom:14px}
+.co{font-size:16px;font-weight:800;color:#1565C0}.sub{font-size:10px;color:#888;margin-top:2px}
+.doc-title .t{font-size:16px;font-weight:800;color:#1565C0;text-align:right;text-transform:uppercase}
+.doc-title .n{font-size:12px;color:#555;text-align:right;margin-top:2px}
+.info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:#F5F8FF;border:1px solid #D0DFFF;border-radius:6px;padding:10px;margin-bottom:12px}
+.ic{}.lbl{font-size:9px;font-weight:700;color:#1565C0;text-transform:uppercase;letter-spacing:.5px}.val{font-size:11px;color:#1A1A1A;margin-top:1px}.full{grid-column:1/-1}
+.sec{font-size:10px;font-weight:700;color:#1565C0;text-transform:uppercase;letter-spacing:1px;margin:10px 0 6px;border-bottom:1px solid #e0e0e0;padding-bottom:4px}
+table{width:100%;border-collapse:collapse;margin-bottom:12px}
+thead th{background:#1565C0;color:#fff;padding:6px 8px;font-size:10px;font-weight:700;text-transform:uppercase}
+.num{width:28px;text-align:center}.qtd{width:40px;text-align:center}.pr{width:80px;text-align:right}.sub{width:80px;text-align:right;font-weight:700}
+tbody tr:nth-child(even){background:#F5F8FF}
+tbody td{padding:7px 8px;border-bottom:1px solid #e8e8e8;vertical-align:middle;font-size:11px}
+.atag{display:inline-block;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:700;background:#EEF4FF;color:#1565C0;margin:1px}
+.local-tag{display:inline-block;padding:1px 5px;border-radius:3px;font-size:9px;background:#E8F5E9;color:#2E7D32;margin:1px}
+.obs-item{font-size:10px;color:#666;font-style:italic}
+.total-box{background:#1A2540;color:#fff;padding:10px 14px;border-radius:6px;display:flex;justify-content:flex-end;gap:24px;margin-bottom:12px;font-weight:700}
+.sigs{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px;padding-top:16px;border-top:1px solid #e0e0e0}
+.sig-box{text-align:center}.sig-line{border-top:1px solid #333;margin-top:40px;padding-top:6px;font-size:10px;color:#555}
+.footer{margin-top:16px;padding-top:10px;border-top:1px solid #e0e0e0;text-align:center;font-size:9px;color:#999}
+@media print{*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}}
+</style></head><body>
+<div class="hdr">
+  <div><div class="co">⚡ ${e.fantasia||e.nome||'AccertTech'}</div><div class="sub">Serviços Elétricos${e.crea?' · CREA: '+e.crea:''}</div></div>
+  <div class="doc-title"><div class="t">ORÇAMENTO</div><div class="n">Nº ORC-${String(o.num||0).padStart(4,'0')}</div></div>
+</div>
+<div class="info-grid">
+  ${o.data?`<div class="ic"><div class="lbl">Data</div><div class="val">${fmtDate(o.data)}</div></div>`:''}
+  ${o.validade?`<div class="ic"><div class="lbl">Válido até</div><div class="val">${fmtDate(o.validade)}</div></div>`:''}
+  ${o.dataInicio?`<div class="ic"><div class="lbl">Início do Serviço</div><div class="val">${fmtDate(o.dataInicio)}</div></div>`:''}
+  ${o.dataFim?`<div class="ic"><div class="lbl">Término do Serviço</div><div class="val">${fmtDate(o.dataFim)}</div></div>`:''}
+  ${cli.nome?`<div class="ic"><div class="lbl">Cliente</div><div class="val">${cli.nome}</div></div>`:''}
+  ${cli.fone?`<div class="ic"><div class="lbl">Telefone</div><div class="val">${cli.fone}</div></div>`:''}
+  ${o.endObra?`<div class="ic full"><div class="lbl">Endereço da Obra</div><div class="val">${o.endObra}</div></div>`:''}
+  ${e.nome?`<div class="ic"><div class="lbl">Responsável Técnico</div><div class="val">${e.nome}</div></div>`:''}
+  ${o.pgto?`<div class="ic"><div class="lbl">Pagamento</div><div class="val">${o.pgto}</div></div>`:''}
+</div>
+<div class="sec">Itens do Orçamento</div>
+<table><thead><tr><th class="num">#</th><th style="text-align:left">Descrição</th><th class="qtd">Qtd.</th><th>Un.</th><th class="pr">Preço Unit.</th><th class="sub">Subtotal</th></tr></thead>
+<tbody>${rowsHtml}</tbody></table>
+<div class="total-box">
+  <span>Subtotal: ${fmtR(o.sub||0)}</span>
+  ${o.desc?`<span style="color:#FF8A80">Desconto: -${fmtR(o.desc)}</span>`:''}
+  <span style="font-size:15px;color:#FFB300">TOTAL: ${fmtR(o.totalF||0)}</span>
+</div>
+${o.pgto?`<div style="margin-bottom:10px"><strong>Pagamento:</strong> ${o.pgto}</div>`:''}
+${o.obs?`<div style="background:#FFF8E1;border:1px solid #FFE082;border-radius:6px;padding:10px 14px;font-size:11px;margin-bottom:12px"><strong>Observações:</strong><br>${o.obs}</div>`:''}
+<div style="background:#F1F8E9;border:1px solid #A5D6A7;border-radius:8px;padding:12px 16px;margin-bottom:12px;font-size:11px">
+  <strong style="color:#2E7D32">✅ Documento aprovado com assinatura digital</strong>
+  ${dt?`<span style="color:#555;margin-left:10px">em ${dt}</span>`:''}
+  ${sig.signedIp||sig.signedDevice?`<div style="margin-top:6px;color:#555;font-size:10px">${sig.signedIp?'IP: '+sig.signedIp:''}${sig.signedIp&&sig.signedDevice?' · ':''}${sig.signedDevice||''}</div>`:''}
+</div>
+<div class="sigs">
+  <div class="sig-box"><div class="sig-line">${e.fantasia||e.nome||'AccertTech'} — Responsável Técnico</div></div>
+  <div class="sig-box">
+    ${sig.signedImg?`<img src="${sig.signedImg}" style="max-height:70px;max-width:220px;display:block;margin:0 auto 4px">`:''}`+`
+    <div class="sig-line">Cliente — ${cli.nome||'_____________________'}</div>
+  </div>
+</div>
+<div class="footer">ORC-${String(o.num||0).padStart(4,'0')} · ${e.fantasia||e.nome||'AccertTech'} · Documento gerado em ${new Date().toLocaleString('pt-BR')}</div>
+</body></html>`)
+  w.document.close();setTimeout(()=>w.print(),500)
 }
 
 function _sigForm(sig,token){
