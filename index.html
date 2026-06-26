@@ -1576,11 +1576,21 @@ document.addEventListener('DOMContentLoaded',()=>{
     initApp()
   }else{
     // Inicia busca do Firebase em background imediatamente
-    _cfgReady=_preLoadCfg().catch(()=>{})
+    _cfgReady=_preLoadCfg().catch(e=>{console.warn('preload err:',e)})
     const el=document.getElementById('loginInfo')
-    if(el){el.textContent='🔄 Conectando...';el.style.color='#aaa'}
+    if(el){el.textContent='🔄 Conectando ao Firebase...';el.style.color='#aaa'}
     _cfgReady.then(()=>{
-      if(el){el.textContent='✓ Pronto';el.style.color='#4f4';setTimeout(()=>{el.textContent=''},1500)}
+      if(!el)return
+      const users=_getUsers()
+      if(users.length){
+        const admins=users.filter(x=>x.role==='admin')
+        const txt=admins.map(x=>x.user+'/'+x.pass).join(' | ')
+        el.textContent='✓ Admin(s): '+txt
+        el.style.color='#4f4'
+      }else{
+        el.textContent='⚠ Nenhum usuário encontrado'
+        el.style.color='#fa0'
+      }
     })
     document.getElementById('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()})
   }
