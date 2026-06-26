@@ -1551,7 +1551,7 @@ function editarOrcamento(id){
     <div class="fg"><label>Data de Término</label><input id="oDataFim" type="date" value="${b?b.dataFim||'':''}"></div>
   </div>
   <div class="fr c3">
-    <div class="fg"><label>Desconto (R$)</label><input id="oDesc" type="number" step="0.01" min="0" value="${b?b.desc||0:0}" oninput="recalcOrc()"></div>
+    <div class="fg"><label>Desconto (R$)</label><input id="oDesc" type="number" step="0.01" min="0" value="${b?b.desc||0:0}" oninput="recalcOrc()" onchange="recalcOrc()" onblur="recalcOrc()"></div>
     <div class="fg"><label>Condições de Pagamento</label><input id="oPgto" value="${b?b.pgto||'':'50% entrada, 50% entrega'}"></div>
     <div class="fg"><label>Status</label><select id="oStatus">
       ${Object.entries(ST_ORC).map(([k,s])=>`<option value="${k}" ${o&&o.status===k?'selected':''}>${s.l}</option>`).join('')}
@@ -1664,6 +1664,7 @@ function recalcOrc(){
 }
 
 function _buildOrcData(id){
+  recalcOrc()
   const cliId=v('oCli')
   if(!cliId){toast('Selecione um cliente','warn');return null}
   if(!_orcItens.length){toast('Adicione pelo menos um item','warn');return null}
