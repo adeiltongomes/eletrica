@@ -190,6 +190,7 @@ textarea{resize:vertical;min-height:70px}
         <div class="pg-title" id="pageTitle">Dashboard</div>
       </div>
       <div style="display:flex;align-items:center;gap:10px">
+        <button onclick="forceSyncAll()" id="syncBtn" style="font-size:11px;padding:4px 10px;background:var(--pri);color:#fff;border:none;border-radius:6px;cursor:pointer" title="Forçar envio de todos os dados para o Firebase">⬆ Sync</button>
         <span id="syncBadge" title="Verificando sincronização..." style="font-size:18px;cursor:default;color:var(--txt4)">⬤</span>
         <span style="font-size:11px;color:var(--txt3)" id="topEmp"></span>
       </div>
@@ -460,6 +461,29 @@ async function _preLoadCfg(){
       console.log('Config sincronizado do Firebase')
     }
   }catch(e){console.warn('preLoadCfg:',e)}
+}
+async function forceSyncAll(){
+  const btn=document.getElementById('syncBtn')
+  if(btn){btn.disabled=true;btn.textContent='⬆ Enviando...'}
+  try{
+    if(!_fdb){
+      if(!firebase.apps.length)firebase.initializeApp(_AT_FB)
+      _fdb=firebase.firestore()
+      _fdb.settings({experimentalForceLongPolling:true,merge:true})
+    }
+    _syncEnabled=true
+    await Promise.all(Object.keys(_FS_KEYS).map(async k=>{
+      const d=DB.get(k);if(d===null)return
+      const fk=_FS_KEYS[k]
+      const docId=_AT_PFX+fk+'_'+Date.now()+'_'+Math.random().toString(36).slice(2,6)
+      await _fdb.collection('assinaturas').doc(docId).set({_ate:true,_key:k,data:JSON.stringify(d),ts:Date.now()})
+    }))
+    toast('✓ Todos os dados enviados para o Firebase','ok')
+    if(btn){btn.disabled=false;btn.textContent='⬆ Sync'}
+  }catch(e){
+    toast('Erro ao sincronizar: '+e.message,'warn')
+    if(btn){btn.disabled=false;btn.textContent='⬆ Sync'}
+  }
 }
 async function debugFirebase(){
   const el=document.getElementById('loginInfo')
