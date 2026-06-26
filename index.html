@@ -130,17 +130,85 @@ textarea{resize:vertical;min-height:70px}
 .attr-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--pri);margin-bottom:10px;display:flex;align-items:center;gap:6px}
 @media(max-width:900px){.g4{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr}}
 @media(max-width:720px){
-  .sidebar{position:fixed;left:0;top:0;bottom:0;z-index:200;transform:translateX(-100%)}
-  .sidebar.mob-open{transform:translateX(0)}
-  .menu-btn{display:block}
-  .content{padding:14px}
-  .topbar{padding:0 14px}
-  .fr.c3,.fr.c4{grid-template-columns:1fr 1fr}
+  .sidebar{display:none!important}
+  .menu-btn{display:none!important}
+  .main{padding-bottom:64px}
+  .content{padding:12px 10px}
+  .topbar{padding:0 12px;height:48px}
+  .fr.c2,.fr.c3,.fr.c4{grid-template-columns:1fr}
   .g2,.g3,.g4{grid-template-columns:1fr}
-  .orc-item-top{grid-template-columns:1fr 60px 80px 30px}
+  .tbl th,.tbl td{padding:7px 9px;font-size:12px}
+  .tab-btns{overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .tab-btns::-webkit-scrollbar{display:none}
+  .tab-btn{flex-shrink:0;padding:7px 12px}
+  .modal-bg{align-items:flex-end}
+  .modal,.modal-w,.modal-xl{width:100vw!important;max-width:100vw!important;border-radius:16px 16px 0 0;max-height:93vh;margin:0;animation:su .2s ease}
+  .mhdr{border-radius:16px 16px 0 0}
+  input,select{padding:11px 12px;font-size:16px}
+  textarea{font-size:15px}
+  .btn{padding:10px 15px}
+  .btn-sm{padding:9px 14px;font-size:13px}
+  .btn-xs{padding:5px 10px}
+  .pg-title{font-size:14px}
+  .mob-card{display:block!important}
+  .mob-tbl{display:none!important}
+  .orc-item-top{display:flex!important;flex-wrap:wrap;gap:6px;align-items:flex-start}
+  .orc-item-top>div:nth-child(1){order:1;flex:1 1 calc(100% - 46px);min-width:0}
+  .orc-item-top>div:nth-child(6){order:2;flex:0 0 34px;align-self:flex-start;padding-top:16px}
+  .orc-item-top>div:nth-child(2){order:3;flex:0 0 66px}
+  .orc-item-top>div:nth-child(3){order:4;flex:0 0 60px}
+  .orc-item-top>div:nth-child(4){order:5;flex:1 0 90px}
+  .orc-item-top>div:nth-child(5){order:6;flex:1 0 80px}
 }
-@media(max-width:480px){.fr.c2,.fr.c3,.fr.c4{grid-template-columns:1fr}}
-@media print{.no-print{display:none!important}body{background:#fff;color:#000}}
+@keyframes su{from{transform:translateY(24px);opacity:0}to{transform:translateY(0);opacity:1}}
+/* ── Mobile bottom navigation ── */
+.mob-nav{
+  display:none;position:fixed;bottom:0;left:0;right:0;z-index:500;
+  background:var(--sb);border-top:1px solid var(--b);height:60px;
+  align-items:center;padding-bottom:env(safe-area-inset-bottom,0);
+}
+@media(max-width:720px){.mob-nav{display:flex}}
+.mn-item{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:2px;color:var(--txt3);cursor:pointer;font-size:9px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.4px;border:none;background:none;
+  padding:5px 2px;height:100%;-webkit-tap-highlight-color:transparent;transition:color .12s;
+}
+.mn-item.active{color:var(--pri)}
+.mn-item .mi{font-size:21px;line-height:1.1}
+/* ── More menu (mobile) ── */
+.mob-menu{display:none;position:fixed;inset:0;z-index:600;align-items:flex-end}
+.mob-menu.open{display:flex}
+.mob-menu-bg{position:absolute;inset:0;background:rgba(0,0,0,.55)}
+.mob-menu-box{
+  position:relative;width:100%;background:var(--sb);border-radius:16px 16px 0 0;
+  padding:6px 10px calc(68px + env(safe-area-inset-bottom,0));border-top:1px solid var(--b);z-index:1;
+}
+.mob-menu-handle{width:36px;height:4px;background:var(--b2);border-radius:2px;margin:6px auto 12px;display:block}
+.mm-item{
+  display:flex;align-items:center;gap:12px;padding:13px 10px;border-radius:8px;
+  color:var(--txt2);font-size:14px;font-weight:500;cursor:pointer;
+  border:none;background:none;width:100%;text-align:left;
+}
+.mm-item:active{background:var(--card2)}
+.mm-item .ico{font-size:18px;width:24px;text-align:center;flex-shrink:0}
+/* ── Mobile card list ── */
+.mob-card{display:none}
+.mc-item{
+  background:var(--card);border:1px solid var(--b);border-radius:var(--r);
+  padding:13px 14px;margin-bottom:8px;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.mc-item:active{background:var(--card2);border-color:var(--b2)}
+.mc-r1{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px}
+.mc-r2{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.mc-id{font-weight:800;font-size:12px;color:var(--pri);flex-shrink:0}
+.mc-idy{color:var(--acc)}
+.mc-name{font-weight:600;color:var(--txt);font-size:14px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mc-val{font-weight:700;color:var(--acc);font-size:14px;flex-shrink:0;margin-left:4px}
+.mc-sub{font-size:11px;color:var(--txt3);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mc-acts{display:flex;gap:4px;flex-shrink:0}
+@media print{.no-print,.mob-nav,.mob-menu{display:none!important}body{background:#fff;color:#000}}
 </style>
 </head>
 <body>
@@ -218,6 +286,26 @@ textarea{resize:vertical;min-height:70px}
 
 <div id="toast"></div>
 <div id="sideOverlay" style="display:none;position:fixed;inset:0;z-index:199;background:rgba(0,0,0,.5)" onclick="toggleSidebar()"></div>
+
+<nav class="mob-nav" id="mobNav">
+  <button class="mn-item active" id="mn-dashboard" onclick="nav('dashboard')"><span class="mi">📊</span>Início</button>
+  <button class="mn-item" id="mn-orcamentos" onclick="nav('orcamentos')"><span class="mi">📋</span>Orçamentos</button>
+  <button class="mn-item" id="mn-os" onclick="nav('os')"><span class="mi">🔧</span>OS</button>
+  <button class="mn-item" id="mn-clientes" onclick="nav('clientes')"><span class="mi">👥</span>Clientes</button>
+  <button class="mn-item" id="mn-mais" onclick="openMobMenu()"><span class="mi">☰</span>Mais</button>
+</nav>
+<div class="mob-menu" id="mobMenu">
+  <div class="mob-menu-bg" onclick="closeMobMenu()"></div>
+  <div class="mob-menu-box">
+    <span class="mob-menu-handle"></span>
+    <button class="mm-item" onclick="nav('produtos');closeMobMenu()"><span class="ico">🔌</span>Produtos / Serviços</button>
+    <button class="mm-item" onclick="nav('estoque');closeMobMenu()"><span class="ico">📦</span>Estoque</button>
+    <button class="mm-item" onclick="nav('financeiro');closeMobMenu()"><span class="ico">💰</span>Financeiro</button>
+    <button class="mm-item" onclick="nav('config');closeMobMenu()"><span class="ico">⚙️</span>Configurações</button>
+    <div style="height:1px;background:var(--b);margin:6px 0"></div>
+    <button class="mm-item" onclick="logout()"><span class="ico">🚪</span>Sair</button>
+  </div>
+</div>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
@@ -394,6 +482,8 @@ function toggleSidebar(){
   const open=sb.classList.toggle('mob-open')
   ov.style.display=open?'block':'none'
 }
+function openMobMenu(){document.getElementById('mobMenu').classList.add('open')}
+function closeMobMenu(){document.getElementById('mobMenu').classList.remove('open')}
 
 // ── Auth / Sessão ──
 function _getUsers(){
@@ -461,6 +551,10 @@ function nav(page){
   document.querySelectorAll('.sb-item').forEach(el=>el.classList.remove('active'))
   const sb=document.getElementById('sb-'+page)
   if(sb)sb.classList.add('active')
+  // Mobile bottom nav active state
+  document.querySelectorAll('.mn-item').forEach(el=>el.classList.remove('active'))
+  const mn=document.getElementById('mn-'+page)||document.getElementById('mn-mais')
+  if(mn)mn.classList.add('active')
   const titles={dashboard:'Dashboard',orcamentos:'Orçamentos',os:'Ordens de Serviço',clientes:'Clientes',produtos:'Produtos / Serviços',estoque:'Estoque',financeiro:'Financeiro',config:'Configurações'}
   document.getElementById('pageTitle').textContent=titles[page]||page
   // Close sidebar on mobile
@@ -548,7 +642,7 @@ function renderClientes(){
   <div class="sh"><div><div class="stitle">Clientes</div><div class="ssub">${list.length} cadastrado(s)</div></div>
     <button class="btn btn-p" onclick="editarCliente()">+ Novo Cliente</button></div>
   <div style="margin-bottom:12px"><input placeholder="🔍  Buscar cliente..." oninput="filtrarClientes(this.value)" style="max-width:320px"></div>
-  <div class="tbl-wrap"><table class="tbl" id="tblCli">
+  <div class="mob-tbl"><div class="tbl-wrap"><table class="tbl" id="tblCli">
     <thead><tr><th>Nome</th><th>Telefone</th><th>Email</th><th>Endereço</th><th></th></tr></thead>
     <tbody>${list.length?list.map(c=>`<tr onclick="editarCliente('${c.id}')">
       <td style="font-weight:600;color:var(--txt)">${c.nome}</td>
@@ -557,20 +651,35 @@ function renderClientes(){
       <td onclick="event.stopPropagation()"><button class="btn btn-g btn-ico" onclick="excluirCliente('${c.id}')">🗑️</button></td>
     </tr>`).join(''):
     '<tr><td colspan="5"><div class="empty"><div class="empty-ico">👥</div><div class="empty-t">Nenhum cliente cadastrado</div></div></td></tr>'}</tbody>
-  </table></div>`
+  </table></div></div>
+  <div class="mob-card" id="mobCliCards">${_renderCliCards(list)}</div>`
+}
+
+function _renderCliCards(list){
+  if(!list.length)return'<div class="empty"><div class="empty-ico">👥</div><div class="empty-t">Nenhum cliente cadastrado</div></div>'
+  return list.map(c=>`<div class="mc-item" onclick="editarCliente('${c.id}')">
+    <div class="mc-r2" style="margin-bottom:4px">
+      <span class="mc-name">${c.nome}</span>
+      <div class="mc-acts" onclick="event.stopPropagation()">
+        <button class="btn btn-g btn-ico btn-sm" onclick="excluirCliente('${c.id}')">🗑️</button>
+      </div>
+    </div>
+    <span class="mc-sub">${[c.fone,c.email,c.end].filter(Boolean).join(' · ')||'—'}</span>
+  </div>`).join('')
 }
 
 function filtrarClientes(q){
   const list=DB.get(S.CLI)||[]
-  const f=list.filter(c=>c.nome.toLowerCase().includes(q.toLowerCase())||((c.fone||'').includes(q))||((c.email||'').toLowerCase().includes(q.toLowerCase())))
+  const f=q?list.filter(c=>c.nome.toLowerCase().includes(q.toLowerCase())||((c.fone||'').includes(q))||((c.email||'').toLowerCase().includes(q.toLowerCase()))):list
   const tbody=document.querySelector('#tblCli tbody')
-  if(!tbody)return
-  tbody.innerHTML=f.map(c=>`<tr onclick="editarCliente('${c.id}')">
+  if(tbody)tbody.innerHTML=f.map(c=>`<tr onclick="editarCliente('${c.id}')">
     <td style="font-weight:600;color:var(--txt)">${c.nome}</td>
     <td>${c.fone||'—'}</td><td>${c.email||'—'}</td>
     <td style="font-size:12px;color:var(--txt3)">${c.end||'—'}</td>
     <td onclick="event.stopPropagation()"><button class="btn btn-g btn-ico" onclick="excluirCliente('${c.id}')">🗑️</button></td>
   </tr>`).join('')||'<tr><td colspan="5" style="text-align:center;color:var(--txt3);padding:20px">Nenhum resultado</td></tr>'
+  const mc=document.getElementById('mobCliCards')
+  if(mc)mc.innerHTML=_renderCliCards(f)
 }
 
 function editarCliente(id){
@@ -825,7 +934,7 @@ function renderOrcamentos(){
   <div class="tab-btns" style="margin-bottom:14px">
     ${filt.map(f=>`<button class="tab-btn${cur===f?' active':''}" onclick="window._orcFilt='${f}';renderOrcamentos()">${f==='todos'?'Todos':ST_ORC[f]?ST_ORC[f].l:f}</button>`).join('')}
   </div>
-  <div class="tbl-wrap"><table class="tbl">
+  <div class="mob-tbl"><div class="tbl-wrap"><table class="tbl">
     <thead><tr><th>Nº</th><th>Data</th><th>Cliente</th><th>Endereço Obra</th><th>Total</th><th>Status</th><th></th></tr></thead>
     <tbody>${sorted.length?sorted.map(o=>`<tr onclick="editarOrcamento('${o.id}')">
       <td style="color:var(--pri);font-weight:800">${orcNumFmt(o.num)}</td>
@@ -841,7 +950,26 @@ function renderOrcamentos(){
       </td>
     </tr>`).join(''):
     '<tr><td colspan="7"><div class="empty"><div class="empty-ico">📋</div><div class="empty-t">Nenhum orçamento</div></div></td></tr>'}</tbody>
-  </table></div>`
+  </table></div></div>
+  <div class="mob-card">${sorted.length?sorted.map(o=>`
+  <div class="mc-item" onclick="editarOrcamento('${o.id}')">
+    <div class="mc-r1">
+      <span class="mc-id">${orcNumFmt(o.num)}</span>
+      <span class="bdg ${(ST_ORC[o.status]||{c:'bdg-gr'}).c}">${(ST_ORC[o.status]||{l:o.status}).l}</span>
+    </div>
+    <div class="mc-r2" style="margin-bottom:5px">
+      <span class="mc-name">${cliNome(o.cliId)}</span>
+      <span class="mc-val">${fmtR(o.totalF||0)}</span>
+    </div>
+    <div class="mc-r2">
+      <span class="mc-sub">${fmtDate(o.data)}${o.endObra?' · '+o.endObra:''}</span>
+      <div class="mc-acts" onclick="event.stopPropagation()">
+        <button class="btn btn-g btn-ico btn-sm" onclick="imprimirOrcamento('${o.id}')">🖨️</button>
+        <button class="btn btn-g btn-ico btn-sm" onclick="novaOSdeOrc('${o.id}')">🔧</button>
+        <button class="btn btn-g btn-ico btn-sm" onclick="excluirOrcamento('${o.id}')">🗑️</button>
+      </div>
+    </div>
+  </div>`).join(''):'<div class="empty"><div class="empty-ico">📋</div><div class="empty-t">Nenhum orçamento</div></div>'}</div>`
   // Badge
   const pendentes=(DB.get(S.ORC)||[]).filter(o=>o.status==='enviado').length
   const b=document.getElementById('bdg-orc')
@@ -1063,7 +1191,7 @@ function renderOS(){
   <div class="tab-btns" style="margin-bottom:14px">
     ${['todos','aberta','andamento','concluida','cancelada'].map(f=>`<button class="tab-btn${cur===f?' active':''}" onclick="window._osFilt='${f}';renderOS()">${f==='todos'?'Todas':ST_OS[f]?ST_OS[f].l:f}</button>`).join('')}
   </div>
-  <div class="tbl-wrap"><table class="tbl">
+  <div class="mob-tbl"><div class="tbl-wrap"><table class="tbl">
     <thead><tr><th>Nº</th><th>Orçamento</th><th>Cliente</th><th>Data Prev.</th><th>Técnico</th><th>Status</th><th></th></tr></thead>
     <tbody>${sorted.length?sorted.map(o=>`<tr onclick="editarOS('${o.id}')">
       <td style="color:var(--acc);font-weight:800">${osNumFmt(o.num)}</td>
@@ -1077,7 +1205,24 @@ function renderOS(){
         <button class="btn btn-g btn-ico" onclick="excluirOS('${o.id}')">🗑️</button>
       </td>
     </tr>`).join(''):'<tr><td colspan="7"><div class="empty"><div class="empty-ico">🔧</div><div class="empty-t">Nenhuma OS cadastrada</div></div></td></tr>'}</tbody>
-  </table></div>`
+  </table></div></div>
+  <div class="mob-card">${sorted.length?sorted.map(o=>`
+  <div class="mc-item" onclick="editarOS('${o.id}')">
+    <div class="mc-r1">
+      <span class="mc-id mc-idy">${osNumFmt(o.num)}</span>
+      <span class="bdg ${(ST_OS[o.status]||{c:'bdg-gr'}).c}">${(ST_OS[o.status]||{l:o.status}).l}</span>
+    </div>
+    <div class="mc-r2" style="margin-bottom:5px">
+      <span class="mc-name">${cliNome(o.cliId)}</span>
+    </div>
+    <div class="mc-r2">
+      <span class="mc-sub">${fmtDate(o.dataPrev)||'—'}${o.tecnico?' · '+o.tecnico:''}</span>
+      <div class="mc-acts" onclick="event.stopPropagation()">
+        <button class="btn btn-g btn-ico btn-sm" onclick="imprimirOS('${o.id}')">🖨️</button>
+        <button class="btn btn-g btn-ico btn-sm" onclick="excluirOS('${o.id}')">🗑️</button>
+      </div>
+    </div>
+  </div>`).join(''):'<div class="empty"><div class="empty-ico">🔧</div><div class="empty-t">Nenhuma OS cadastrada</div></div>'}</div>`
   const abertas=(DB.get(S.OS)||[]).filter(o=>o.status==='aberta'||o.status==='andamento').length
   const b=document.getElementById('bdg-os')
   if(b){b.style.display=abertas?'':'none';b.textContent=abertas}
