@@ -2279,21 +2279,29 @@ function imprimirRomaneio(id){
   const cli=(DB.get(S.CLI)||[]).find(x=>x.id===o.cliId)||{}
   const e=getEmpresa()
   const prods=DB.get(S.PRO)||[]
-  let num=1
-  const rows=(o.itens||[]).map(it=>{
-    const prodAtual=it.prodId&&it.prodId!=='_custom'?prods.find(p=>p.id===it.prodId):null
-    const nome=prodAtual?prodAtual.nome:it.nome
-    const locais=(it.locais||[]).join(', ')
-    return`<tr>
-      <td style="text-align:center;color:#555">${num++}</td>
-      <td>${nome||'—'}${locais?`<br><span style="font-size:10px;color:#888">${locais}</span>`:''}${it.obs?`<br><span style="font-size:10px;color:#888;font-style:italic">${it.obs}</span>`:''}</td>
-      <td style="text-align:center;font-weight:700">${it.qtd||1}</td>
-      <td style="text-align:center;color:#555">${it.un||'un'}</td>
-      <td style="text-align:center"><div style="width:18px;height:18px;border:1.5px solid #aaa;border-radius:3px;margin:0 auto"></div></td>
-    </tr>`
-  }).join('')
+  // Agrupa itens por categoria
+  const cats=[...new Set((o.itens||[]).map(it=>it.cat||'outro'))]
+  let numGlobal=0,rowsHtml=''
+  cats.forEach(cat=>{
+    if(cats.length>1)rowsHtml+=`<tr><td colspan="5" style="background:#EEF4FF;color:#1565C0;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;padding:5px 8px">${catIco(cat)} ${catNome(cat)}</td></tr>`
+    ;(o.itens||[]).filter(it=>(it.cat||'outro')===cat).forEach(it=>{
+      numGlobal++
+      const prodAtual=it.prodId&&it.prodId!=='_custom'?prods.find(p=>p.id===it.prodId):null
+      const nome=prodAtual?prodAtual.nome:it.nome
+      const itAtual=prodAtual?{...it,...prodAtual,prodId:it.prodId,nome}:it
+      const attrs=getAttrTagsForPrint(itAtual)
+      const locais=(it.locais||[]).map(l=>`<span style="display:inline-block;padding:1px 5px;border-radius:3px;font-size:9px;background:#E8F5E9;color:#2E7D32;margin:1px">${l}</span>`).join(' ')
+      rowsHtml+=`<tr>
+        <td style="text-align:center;color:#555;font-size:11px">${numGlobal}</td>
+        <td>${nome||'—'}${attrs?`<br>${attrs}`:''}${locais?`<br>${locais}`:''}${it.obs?`<br><span style="font-size:9px;color:#888;font-style:italic">${it.obs}</span>`:''}</td>
+        <td style="text-align:center;font-weight:700">${it.qtd||1}</td>
+        <td style="text-align:center;color:#555">${it.un||'un'}</td>
+        <td style="text-align:center"><div style="width:18px;height:18px;border:1.5px solid #aaa;border-radius:3px;margin:0 auto"></div></td>
+      </tr>`
+    })
+  })
   const w=window.open('','_blank','width=860,height=700')
-  w.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Romaneio</title><style>
+  w.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Romaneio − ${orcNumFmt(o.num)}</title><style>
 *{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',Arial,sans-serif;background:#fff;color:#1A1A1A;font-size:12px;padding:22px}
 .hdr{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1565C0;padding-bottom:10px;margin-bottom:14px}
 .co{font-size:16px;font-weight:800;color:#1565C0}.sub{font-size:10px;color:#888;margin-top:2px}
@@ -2302,40 +2310,43 @@ function imprimirRomaneio(id){
 .info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:#F5F8FF;border:1px solid #D0DFFF;border-radius:6px;padding:10px;margin-bottom:14px}
 .ic{}.lbl{font-size:9px;font-weight:700;color:#1565C0;text-transform:uppercase;letter-spacing:.5px}.val{font-size:11px;color:#1A1A1A;margin-top:1px}
 .full{grid-column:1/-1}
-.sec{font-size:10px;font-weight:700;color:#1565C0;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;border-bottom:1px solid #e0e0e0;padding-bottom:4px}
+.sec{font-size:10px;font-weight:700;color:#1565C0;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;border-bottom:1px solid #e0e0e0;padding-bottom:4px;margin-top:12px}
 table{width:100%;border-collapse:collapse;margin-bottom:14px}
 thead th{background:#1565C0;color:#fff;padding:6px 8px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
 tbody tr:nth-child(even){background:#F5F8FF}
 tbody td{padding:7px 8px;border-bottom:1px solid #e8e8e8;vertical-align:middle;font-size:11px}
-.sigs{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-top:30px;padding-top:14px;border-top:1px solid #ccc}
+.atag{display:inline-block;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:700;background:#EEF4FF;color:#1565C0;margin:1px}
+.sigs{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-top:24px;padding-top:14px;border-top:1px solid #ccc}
 .sig-box{text-align:center}.sig-line{border-top:1px solid #333;padding-top:6px;font-size:10px;color:#555;margin-top:48px}
 .footer{margin-top:14px;text-align:center;font-size:9px;color:#aaa;border-top:1px solid #eee;padding-top:8px}
 @media print{*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}}
 </style></head><body>
 <div class="hdr">
-  <div><div class="co">⚡ ${e.fantasia||e.nome||'AccertTech'}</div><div class="sub">${e.fone||''}${e.email?' · '+e.email:''}</div></div>
+  <div><div class="co">⚡ ${e.fantasia||e.nome||'AccertTech'}</div><div class="sub">${[e.fone,e.email,e.crea?'CREA: '+e.crea:''].filter(Boolean).join(' · ')}</div></div>
   <div class="doc-title"><div class="t">Romaneio de Entrega</div><div class="n">Ref.: ${orcNumFmt(o.num)} · ${fmtDate(today())}</div></div>
 </div>
 <div class="info-grid">
   <div class="ic"><div class="lbl">Cliente</div><div class="val">${cli.nome||'—'}</div></div>
   <div class="ic"><div class="lbl">Telefone</div><div class="val">${cli.fone||'—'}</div></div>
-  <div class="ic"><div class="lbl">Data</div><div class="val">${fmtDate(today())}</div></div>
+  <div class="ic"><div class="lbl">Data do Orçamento</div><div class="val">${fmtDate(o.data)}</div></div>
   ${o.endObra?`<div class="ic full"><div class="lbl">Endereço da Obra</div><div class="val">${o.endObra}</div></div>`:''}
+  ${cli.end?`<div class="ic full"><div class="lbl">Endereço do Cliente</div><div class="val">${cli.end}</div></div>`:''}
   ${o.resp?`<div class="ic"><div class="lbl">Responsável Técnico</div><div class="val">${o.resp}</div></div>`:''}
   ${o.dataInicio?`<div class="ic"><div class="lbl">Início do Serviço</div><div class="val">${fmtDate(o.dataInicio)}</div></div>`:''}
   ${o.dataFim?`<div class="ic"><div class="lbl">Término Previsto</div><div class="val">${fmtDate(o.dataFim)}</div></div>`:''}
+  ${o.pgto?`<div class="ic full"><div class="lbl">Condições de Pagamento</div><div class="val">${o.pgto}</div></div>`:''}
 </div>
 <div class="sec">Materiais / Produtos</div>
 <table>
-  <thead><tr><th style="width:32px">#</th><th style="text-align:left">Descrição</th><th style="width:55px">Qtd.</th><th style="width:45px">Un.</th><th style="width:40px">✓</th></tr></thead>
-  <tbody>${rows}</tbody>
+  <thead><tr><th style="width:30px">#</th><th style="text-align:left">Descrição</th><th style="width:52px">Qtd.</th><th style="width:42px">Un.</th><th style="width:38px">✓</th></tr></thead>
+  <tbody>${rowsHtml}</tbody>
 </table>
-<div style="background:#FFF8E1;border:1px solid #FFE082;border-radius:5px;padding:8px 12px;font-size:10px;margin-bottom:18px">
-  <strong>Atenção:</strong> Confira todos os materiais antes de assinar o recebimento. Qualquer divergência deve ser anotada no campo de observações.
+${o.obs?`<div class="sec">Observações / Condições Gerais</div><div style="background:#FFF8E1;border:1px solid #FFE082;border-radius:5px;padding:8px 12px;font-size:11px;margin-bottom:12px;white-space:pre-line">${o.obs}</div>`:''}
+<div style="background:#FFF8E1;border:1px solid #FFE082;border-radius:5px;padding:8px 12px;font-size:10px;margin-bottom:14px">
+  <strong>Atenção:</strong> Confira todos os materiais antes de assinar o recebimento. Qualquer divergência deve ser anotada abaixo.
 </div>
-<div style="border:1px solid #e0e0e0;border-radius:5px;padding:8px 12px;margin-bottom:18px;min-height:50px">
-  <div style="font-size:9px;font-weight:700;color:#888;text-transform:uppercase;margin-bottom:4px">Observações / Divergências</div>
-</div>
+<div class="sec">Observações / Divergências</div>
+<div style="border:1px solid #e0e0e0;border-radius:5px;padding:8px 12px;margin-bottom:18px;min-height:55px"></div>
 <div class="sigs">
   <div class="sig-box">
     <div style="font-size:10px;color:#888;margin-bottom:4px">Entregue por</div>
