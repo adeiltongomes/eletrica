@@ -1135,7 +1135,7 @@ function renderOrcamentos(){
   const cur=window._orcFilt||'todos'
   // Filtra por criador se não for admin
   const u=currentUser()
-  let shown=isAdmin()?list:list.filter(o=>!o.criadoPor||o.criadoPor===u.user)
+  let shown=isAdmin()?list:list.filter(o=>o.criadoPor===u.user)
   if(cur!=='todos')shown=shown.filter(o=>o.status===cur)
   const sorted=[...shown].sort((a,b)=>b.num-a.num)
   document.getElementById('content').innerHTML=`
