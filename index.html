@@ -1291,7 +1291,7 @@ function renderProdRows(list){
     <td style="max-width:200px">${getAttrTags(p)}</td>
     <td style="color:var(--txt3)">${p.un||'un'}</td>
     <td style="font-weight:700;color:var(--acc)">${fmtR(p.pu||0)}</td>
-    <td onclick="event.stopPropagation()"><button class="btn btn-g btn-ico" onclick="excluirProduto('${p.id}')">🗑️</button></td>
+    <td onclick="event.stopPropagation()" style="white-space:nowrap;gap:4px;display:flex;align-items:center;padding:8px 10px 8px 4px"><button class="btn btn-g btn-ico" title="Duplicar produto" onclick="duplicarProduto('${p.id}')">📋</button><button class="btn btn-g btn-ico" title="Excluir" onclick="excluirProduto('${p.id}')">🗑️</button></td>
   </tr>`).join(''):'<tr><td colspan="7"><div class="empty"><div class="empty-ico">🔌</div><div class="empty-t">Nenhum produto cadastrado</div><button class="btn btn-p btn-sm" style="margin-top:10px" onclick="editarProduto()">Cadastrar primeiro</button></div></td></tr>'
 }
 
@@ -1477,12 +1477,24 @@ function attrFields(cat,d={}){
   return''
 }
 
+let _prodDupData=null
+function duplicarProduto(id){
+  const p=(DB.get(S.PRO)||[]).find(x=>x.id===id)
+  if(!p)return
+  _prodDupData={...p,nome:'Cópia de '+p.nome}
+  if(_imgCache[id])_prodDupData._srcImg=id
+  editarProduto()
+}
+
 function editarProduto(id){
   const list=DB.get(S.PRO)||[]
-  const p=id?list.find(x=>x.id===id)||{}:{}
+  const _dup=!id&&_prodDupData?_prodDupData:null
+  if(_dup)_prodDupData=null
+  const p=id?list.find(x=>x.id===id)||{}:(_dup||{})
   const catSel=p.cat||'inter_int'
   _prodImgData=null
-  const imgAtual=id?_imgCache[id]:null
+  const imgAtual=id?_imgCache[id]:(_dup&&_dup._srcImg?_imgCache[_dup._srcImg]:null)
+  if(_dup&&_dup._srcImg&&_imgCache[_dup._srcImg])_prodImgData=_imgCache[_dup._srcImg]
   openModal(id?'Editar Produto / Serviço':'Novo Produto / Serviço',`
   <div class="fr c2">
     <div class="fg"><label>Categoria *</label><select id="pCat" onchange="updateAttrFields()">
