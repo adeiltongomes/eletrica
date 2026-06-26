@@ -1146,6 +1146,7 @@ function excluirProduto(id){
 
 // ── Orçamentos ──
 let _orcItens=[]
+let _orcCopy=null
 function renderOrcamentos(){
   const list=DB.get(S.ORC)||[]
   const filt=['todos','rascunho','enviado','aprovado','executado','recusado']
@@ -1174,6 +1175,7 @@ function renderOrcamentos(){
         <button class="btn btn-g btn-ico" onclick="imprimirOrcamento('${o.id}')" title="Imprimir">🖨️</button>
         <button class="btn btn-g btn-ico" onclick="novaOSdeOrc('${o.id}')" title="Criar OS">🔧</button>
         <button class="btn btn-g btn-ico" onclick="gerarLinkAssinatura('${o.id}')" title="Link assinatura"${o.sigToken?` style="color:var(--suc)"`:''}>🔗</button>
+        <button class="btn btn-g btn-ico" onclick="duplicarOrcamento('${o.id}')" title="Duplicar orçamento">📋</button>
         <button class="btn btn-g btn-ico" onclick="excluirOrcamento('${o.id}')">🗑️</button>
       </td>
     </tr>`).join(''):
@@ -1195,6 +1197,7 @@ function renderOrcamentos(){
         <button class="btn btn-g btn-ico btn-sm" onclick="imprimirOrcamento('${o.id}')">🖨️</button>
         <button class="btn btn-g btn-ico btn-sm" onclick="novaOSdeOrc('${o.id}')">🔧</button>
         <button class="btn btn-g btn-ico btn-sm" onclick="gerarLinkAssinatura('${o.id}')"${o.sigToken?` style="color:var(--suc)"`:''}>🔗</button>
+        <button class="btn btn-g btn-ico btn-sm" onclick="duplicarOrcamento('${o.id}')">📋</button>
         <button class="btn btn-g btn-ico btn-sm" onclick="excluirOrcamento('${o.id}')">🗑️</button>
       </div>
     </div>
@@ -1211,16 +1214,20 @@ function editarOrcamento(id){
   const list=DB.get(S.ORC)||[]
   const clis=DB.get(S.CLI)||[]
   const o=id?list.find(x=>x.id===id):null
-  _orcItens=o?JSON.parse(JSON.stringify(o.itens||[])):[]
+  const copy=!id&&_orcCopy?_orcCopy:null
+  if(!id)_orcCopy=null
+  const b=o||copy
+  _orcItens=b?JSON.parse(JSON.stringify(b.itens||[])):[]
 
   const hoje=today()
-  openModal(id?`Orçamento ${orcNumFmt(o.num)}`:'Novo Orçamento',`
+  const titulo=id?`Orçamento ${orcNumFmt(o.num)}`:copy?`Cópia de ${orcNumFmt(copy.num)}`:'Novo Orçamento'
+  openModal(titulo,`
   <div class="fr c3">
     <div class="fg"><label>Cliente *</label>
       <div style="display:flex;gap:6px;align-items:center">
         <select id="oCli" style="flex:1">
           <option value="">Selecionar...</option>
-          ${clis.map(c=>`<option value="${c.id}" ${o&&o.cliId===c.id?'selected':''}>${c.nome}</option>`).join('')}
+          ${clis.map(c=>`<option value="${c.id}" ${b&&b.cliId===c.id?'selected':''}>${c.nome}</option>`).join('')}
         </select>
         <button type="button" class="btn btn-o btn-sm" onclick="toggleNovoCliInline()" title="Criar novo cliente" style="flex-shrink:0;padding:9px 12px;font-size:16px;line-height:1">+</button>
       </div>
@@ -1241,20 +1248,20 @@ function editarOrcamento(id){
       </div>
     </div>
     <div class="fg"><label>Data</label><input id="oData" type="date" value="${o?o.data:hoje}"></div>
-    <div class="fg"><label>Validade (dias)</label><input id="oVal" type="number" value="${o?o.valDias||30:30}" min="1"></div>
+    <div class="fg"><label>Validade (dias)</label><input id="oVal" type="number" value="${b?b.valDias||30:30}" min="1"></div>
   </div>
   <div class="fr c2">
-    <div class="fg"><label>Endereço da Obra</label><input id="oEnd" value="${o?o.endObra||'':''}" placeholder="Rua, número, bairro, cidade"></div>
-    <div class="fg"><label>Responsável Técnico</label><input id="oResp" value="${o?o.resp||getEmpresa().resp||'':getEmpresa().resp||''}"></div>
+    <div class="fg"><label>Endereço da Obra</label><input id="oEnd" value="${b?b.endObra||'':''}" placeholder="Rua, número, bairro, cidade"></div>
+    <div class="fg"><label>Responsável Técnico</label><input id="oResp" value="${b?b.resp||getEmpresa().resp||'':getEmpresa().resp||''}"></div>
   </div>
   <div class="fr c3">
-    <div class="fg"><label>Desconto (R$)</label><input id="oDesc" type="number" step="0.01" min="0" value="${o?o.desc||0:0}" oninput="recalcOrc()"></div>
-    <div class="fg"><label>Condições de Pagamento</label><input id="oPgto" value="${o?o.pgto||'':'50% entrada, 50% entrega'}"></div>
+    <div class="fg"><label>Desconto (R$)</label><input id="oDesc" type="number" step="0.01" min="0" value="${b?b.desc||0:0}" oninput="recalcOrc()"></div>
+    <div class="fg"><label>Condições de Pagamento</label><input id="oPgto" value="${b?b.pgto||'':'50% entrada, 50% entrega'}"></div>
     <div class="fg"><label>Status</label><select id="oStatus">
       ${Object.entries(ST_ORC).map(([k,s])=>`<option value="${k}" ${o&&o.status===k?'selected':''}>${s.l}</option>`).join('')}
     </select></div>
   </div>
-  <div class="fr"><div class="fg"><label>Observações / Condições Gerais</label><textarea id="oObs">${o?o.obs||'':''}</textarea></div></div>
+  <div class="fr"><div class="fg"><label>Observações / Condições Gerais</label><textarea id="oObs">${b?b.obs||'':''}</textarea></div></div>
   <div class="divider"></div>
   <div class="sh" style="margin-bottom:10px">
     <div class="stitle">Itens do Orçamento</div>
@@ -1271,6 +1278,14 @@ function editarOrcamento(id){
    ${id&&(o.status==='aprovado'||o.status==='rascunho')?`<button class="btn btn-a btn-sm" onclick="imprimirOrcamento('${id}')">🖨️ Imprimir</button>`:''}
    <button class="btn btn-p btn-sm" onclick="salvarOrcamento('${id||''}')">Salvar</button>`,'xl')
   recalcOrc()
+}
+
+function duplicarOrcamento(id){
+  const list=DB.get(S.ORC)||[]
+  const o=list.find(x=>x.id===id)
+  if(!o)return
+  _orcCopy=o
+  editarOrcamento(null)
 }
 
 function renderOrcItens(){
