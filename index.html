@@ -1497,6 +1497,7 @@ function renderOrcamentos(){
       <td><span class="bdg ${(ST_ORC[o.status]||{c:'bdg-gr'}).c}">${(ST_ORC[o.status]||{l:o.status}).l}</span></td>
       <td onclick="event.stopPropagation()" style="white-space:nowrap">
         <button class="btn btn-g btn-ico" onclick="imprimirOrcamento('${o.id}')" title="Imprimir">🖨️</button>
+        <button class="btn btn-g btn-ico" onclick="imprimirRomaneio('${o.id}')" title="Romaneio de entrega">📦</button>
         <button class="btn btn-g btn-ico" onclick="novaOSdeOrc('${o.id}')" title="Criar OS">🔧</button>
         <button class="btn btn-g btn-ico" onclick="gerarLinkAssinatura('${o.id}')" title="Link assinatura"${o.sigToken?` style="color:var(--suc)"`:''}>🔗</button>
         <button class="btn btn-g btn-ico" onclick="duplicarOrcamento('${o.id}')" title="Duplicar orçamento">📋</button>
@@ -1519,6 +1520,7 @@ function renderOrcamentos(){
       <span class="mc-sub">${fmtDate(o.data)}${o.endObra?' · '+o.endObra:''}</span>
       <div class="mc-acts" onclick="event.stopPropagation()">
         <button class="btn btn-g btn-ico btn-sm" onclick="imprimirOrcamento('${o.id}')">🖨️</button>
+        <button class="btn btn-g btn-ico btn-sm" onclick="imprimirRomaneio('${o.id}')" title="Romaneio">📦</button>
         <button class="btn btn-g btn-ico btn-sm" onclick="novaOSdeOrc('${o.id}')">🔧</button>
         <button class="btn btn-g btn-ico btn-sm" onclick="gerarLinkAssinatura('${o.id}')"${o.sigToken?` style="color:var(--suc)"`:''}>🔗</button>
         <button class="btn btn-g btn-ico btn-sm" onclick="duplicarOrcamento('${o.id}')">📋</button>
@@ -1601,6 +1603,7 @@ function editarOrcamento(id){
   </div>`,
   `<button class="btn btn-o btn-sm" onclick="closeModal()">Cancelar</button>
    ${id?`<button class="btn btn-o btn-sm" onclick="gerarLinkAssinatura('${id}')">🔗 Link</button>`:''}
+   ${id?`<button class="btn btn-g btn-sm" onclick="salvarOrcamento('${id}');setTimeout(()=>imprimirRomaneio('${id}'),300)">📦 Romaneio</button>`:''}
    ${id?`<button class="btn btn-a btn-sm" onclick="salvarEImprimirOrcamento('${id}')">🖨️ Imprimir</button>`:''}
    <button class="btn btn-p btn-sm" onclick="salvarOrcamento('${id||''}')">Salvar</button>`,'xl')
   recalcOrc()
@@ -2269,6 +2272,85 @@ function imprimirOS(id){
   <div class="footer">OS ${osNumFmt(o.num)} — ${getEmpresa().fantasia||getEmpresa().nome||'AccertTech'}</div>
   </body></html>`)
   w.document.close();setTimeout(()=>w.print(),600)
+}
+
+function imprimirRomaneio(id){
+  const o=(DB.get(S.ORC)||[]).find(x=>x.id===id);if(!o)return
+  const cli=(DB.get(S.CLI)||[]).find(x=>x.id===o.cliId)||{}
+  const e=getEmpresa()
+  const prods=DB.get(S.PRO)||[]
+  let num=1
+  const rows=(o.itens||[]).map(it=>{
+    const prodAtual=it.prodId&&it.prodId!=='_custom'?prods.find(p=>p.id===it.prodId):null
+    const nome=prodAtual?prodAtual.nome:it.nome
+    const locais=(it.locais||[]).join(', ')
+    return`<tr>
+      <td style="text-align:center;color:#555">${num++}</td>
+      <td>${nome||'—'}${locais?`<br><span style="font-size:10px;color:#888">${locais}</span>`:''}${it.obs?`<br><span style="font-size:10px;color:#888;font-style:italic">${it.obs}</span>`:''}</td>
+      <td style="text-align:center;font-weight:700">${it.qtd||1}</td>
+      <td style="text-align:center;color:#555">${it.un||'un'}</td>
+      <td style="text-align:center"><div style="width:18px;height:18px;border:1.5px solid #aaa;border-radius:3px;margin:0 auto"></div></td>
+    </tr>`
+  }).join('')
+  const w=window.open('','_blank','width=860,height=700')
+  w.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Romaneio</title><style>
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',Arial,sans-serif;background:#fff;color:#1A1A1A;font-size:12px;padding:22px}
+.hdr{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1565C0;padding-bottom:10px;margin-bottom:14px}
+.co{font-size:16px;font-weight:800;color:#1565C0}.sub{font-size:10px;color:#888;margin-top:2px}
+.doc-title{text-align:right}.doc-title .t{font-size:18px;font-weight:800;color:#1565C0;text-transform:uppercase;letter-spacing:1px}
+.doc-title .n{font-size:12px;color:#555;margin-top:2px}
+.info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:#F5F8FF;border:1px solid #D0DFFF;border-radius:6px;padding:10px;margin-bottom:14px}
+.ic{}.lbl{font-size:9px;font-weight:700;color:#1565C0;text-transform:uppercase;letter-spacing:.5px}.val{font-size:11px;color:#1A1A1A;margin-top:1px}
+.full{grid-column:1/-1}
+.sec{font-size:10px;font-weight:700;color:#1565C0;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;border-bottom:1px solid #e0e0e0;padding-bottom:4px}
+table{width:100%;border-collapse:collapse;margin-bottom:14px}
+thead th{background:#1565C0;color:#fff;padding:6px 8px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+tbody tr:nth-child(even){background:#F5F8FF}
+tbody td{padding:7px 8px;border-bottom:1px solid #e8e8e8;vertical-align:middle;font-size:11px}
+.sigs{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-top:30px;padding-top:14px;border-top:1px solid #ccc}
+.sig-box{text-align:center}.sig-line{border-top:1px solid #333;padding-top:6px;font-size:10px;color:#555;margin-top:48px}
+.footer{margin-top:14px;text-align:center;font-size:9px;color:#aaa;border-top:1px solid #eee;padding-top:8px}
+@media print{*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}}
+</style></head><body>
+<div class="hdr">
+  <div><div class="co">⚡ ${e.fantasia||e.nome||'AccertTech'}</div><div class="sub">${e.fone||''}${e.email?' · '+e.email:''}</div></div>
+  <div class="doc-title"><div class="t">Romaneio de Entrega</div><div class="n">Ref.: ${orcNumFmt(o.num)} · ${fmtDate(today())}</div></div>
+</div>
+<div class="info-grid">
+  <div class="ic"><div class="lbl">Cliente</div><div class="val">${cli.nome||'—'}</div></div>
+  <div class="ic"><div class="lbl">Telefone</div><div class="val">${cli.fone||'—'}</div></div>
+  <div class="ic"><div class="lbl">Data</div><div class="val">${fmtDate(today())}</div></div>
+  ${o.endObra?`<div class="ic full"><div class="lbl">Endereço da Obra</div><div class="val">${o.endObra}</div></div>`:''}
+  ${o.resp?`<div class="ic"><div class="lbl">Responsável Técnico</div><div class="val">${o.resp}</div></div>`:''}
+  ${o.dataInicio?`<div class="ic"><div class="lbl">Início do Serviço</div><div class="val">${fmtDate(o.dataInicio)}</div></div>`:''}
+  ${o.dataFim?`<div class="ic"><div class="lbl">Término Previsto</div><div class="val">${fmtDate(o.dataFim)}</div></div>`:''}
+</div>
+<div class="sec">Materiais / Produtos</div>
+<table>
+  <thead><tr><th style="width:32px">#</th><th style="text-align:left">Descrição</th><th style="width:55px">Qtd.</th><th style="width:45px">Un.</th><th style="width:40px">✓</th></tr></thead>
+  <tbody>${rows}</tbody>
+</table>
+<div style="background:#FFF8E1;border:1px solid #FFE082;border-radius:5px;padding:8px 12px;font-size:10px;margin-bottom:18px">
+  <strong>Atenção:</strong> Confira todos os materiais antes de assinar o recebimento. Qualquer divergência deve ser anotada no campo de observações.
+</div>
+<div style="border:1px solid #e0e0e0;border-radius:5px;padding:8px 12px;margin-bottom:18px;min-height:50px">
+  <div style="font-size:9px;font-weight:700;color:#888;text-transform:uppercase;margin-bottom:4px">Observações / Divergências</div>
+</div>
+<div class="sigs">
+  <div class="sig-box">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Entregue por</div>
+    <div class="sig-line">${e.fantasia||e.nome||'AccertTech'}</div>
+    <div style="font-size:10px;color:#888;margin-top:6px">Data: ____/____/______</div>
+  </div>
+  <div class="sig-box">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Recebido por</div>
+    <div class="sig-line">${cli.nome||'_____________________'}</div>
+    <div style="font-size:10px;color:#888;margin-top:6px">Data: ____/____/______&nbsp;&nbsp;Hora: ____:____</div>
+  </div>
+</div>
+<div class="footer">Romaneio gerado em ${new Date().toLocaleString('pt-BR')} · ${orcNumFmt(o.num)} · ${e.fantasia||e.nome||'AccertTech'}</div>
+</body></html>`)
+  w.document.close();setTimeout(()=>w.print(),500)
 }
 
 // ── Helpers ──
