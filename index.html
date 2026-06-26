@@ -190,8 +190,9 @@ textarea{resize:vertical;min-height:70px}
         <div class="pg-title" id="pageTitle">Dashboard</div>
       </div>
       <div style="display:flex;align-items:center;gap:10px">
-        <button onclick="forceSyncAll()" id="syncBtn" style="font-size:11px;padding:4px 10px;background:var(--pri);color:#fff;border:none;border-radius:6px;cursor:pointer" title="Forçar envio de todos os dados para o Firebase">⬆ Sync</button>
-        <span id="syncBadge" title="Toque para buscar dados atualizados" style="font-size:18px;cursor:pointer;color:var(--txt4)" onclick="pullFromFirebase()">⬤</span>
+        <button onclick="forceSyncAll()" id="syncBtn" style="font-size:11px;padding:4px 10px;background:var(--pri);color:#fff;border:none;border-radius:6px;cursor:pointer">⬆ Sync</button>
+        <button onclick="showFirebaseDiag()" style="font-size:11px;padding:4px 10px;background:#333;color:#fff;border:none;border-radius:6px;cursor:pointer">🔍 Diag</button>
+        <span id="syncBadge" style="font-size:18px;cursor:pointer;color:var(--txt4)" onclick="pullFromFirebase()">⬤</span>
         <span style="font-size:11px;color:var(--txt3)" id="topEmp"></span>
       </div>
     </div>
@@ -488,6 +489,58 @@ async function _preLoadCfg(){
       console.log('Config sincronizado do Firebase')
     }
   }catch(e){console.warn('preLoadCfg:',e)}
+}
+async function showFirebaseDiag(){
+  const div=document.createElement('div')
+  div.style.cssText='position:fixed;inset:0;background:#111;color:#eee;padding:16px;z-index:9999;overflow:auto;font-size:13px;font-family:monospace'
+  div.innerHTML='<b>🔍 Diagnóstico Firebase</b><br><br>Buscando...<br><button onclick="this.parentNode.remove()" style="margin-top:8px;padding:6px 14px;background:#555;color:#fff;border:none;border-radius:6px;cursor:pointer">Fechar</button>'
+  document.body.appendChild(div)
+  try{
+    if(!_fdb){
+      if(!firebase.apps.length)firebase.initializeApp(_AT_FB)
+      _fdb=firebase.firestore()
+      _fdb.settings({experimentalForceLongPolling:true,merge:true})
+    }
+    const snap=await _fdb.collection('assinaturas').get()
+    const total=snap.docs.length
+    const ate=snap.docs.filter(d=>d.id.startsWith('ate_'))
+    const latest={}
+    ate.forEach(doc=>{
+      const d=doc.data()
+      if(!d._key)return
+      if(!latest[d._key]||d.ts>latest[d._key].ts)latest[d._key]={...d,id:doc.id}
+    })
+    let html=`<b>🔍 Diagnóstico Firebase</b><br><br>`
+    html+=`Total docs na coleção: <b>${total}</b><br>`
+    html+=`Docs ate_* encontrados: <b>${ate.length}</b><br><br>`
+    if(Object.keys(latest).length===0){
+      html+=`<span style="color:#f66">⚠ Nenhum doc ate_* com _key encontrado!<br>O PC nunca sincronizou ou os writes estão sendo rejeitados.</span><br>`
+    }else{
+      html+=`<b>Chaves encontradas:</b><br>`
+      Object.entries(latest).forEach(([key,d])=>{
+        const val=d.data?JSON.parse(d.data):null
+        const count=Array.isArray(val)?val.length:(val?'obj':'null')
+        const ts=new Date(d.ts).toLocaleString('pt-BR')
+        html+=`• ${key}: <b>${count} itens</b> — ${ts}<br>`
+      })
+      html+=`<br><button onclick="applyFirebaseDiag()" style="padding:8px 18px;background:#1a7;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px">⬇ Aplicar dados ao app</button>`
+    }
+    html+=`<br><br><button onclick="this.parentNode.remove()" style="padding:6px 14px;background:#555;color:#fff;border:none;border-radius:6px;cursor:pointer">Fechar</button>`
+    div.innerHTML=html
+    window._diagLatest=latest
+  }catch(e){
+    div.innerHTML=`<b>🔍 Diagnóstico</b><br><br><span style="color:#f66">Erro: ${e.message}</span><br><br><button onclick="this.parentNode.remove()" style="padding:6px 14px;background:#555;color:#fff;border:none;border-radius:6px;cursor:pointer">Fechar</button>`
+  }
+}
+function applyFirebaseDiag(){
+  if(!window._diagLatest)return
+  let n=0
+  Object.entries(window._diagLatest).forEach(([key,d])=>{
+    if(d.data){localStorage.setItem(key,d.data);n++}
+  })
+  toast('✓ '+n+' chaves aplicadas','ok')
+  nav(_page);updateBadges()
+  document.querySelector('[style*="position:fixed;inset:0"]')?.remove()
 }
 async function pullFromFirebase(){
   const badge=document.getElementById('syncBadge')
