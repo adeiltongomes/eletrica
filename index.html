@@ -1338,7 +1338,7 @@ function editarOrcamento(id){
   </div>`,
   `<button class="btn btn-o btn-sm" onclick="closeModal()">Cancelar</button>
    ${id?`<button class="btn btn-o btn-sm" onclick="gerarLinkAssinatura('${id}')">🔗 Link</button>`:''}
-   ${id&&(o.status==='aprovado'||o.status==='rascunho')?`<button class="btn btn-a btn-sm" onclick="imprimirOrcamento('${id}')">🖨️ Imprimir</button>`:''}
+   ${id?`<button class="btn btn-a btn-sm" onclick="salvarEImprimirOrcamento('${id}')">🖨️ Imprimir</button>`:''}
    <button class="btn btn-p btn-sm" onclick="salvarOrcamento('${id||''}')">Salvar</button>`,'xl')
   recalcOrc()
 }
@@ -1430,27 +1430,43 @@ function recalcOrc(){
   if(tt)tt.textContent=fmtR(total)
 }
 
-function salvarOrcamento(id){
+function _buildOrcData(id){
   const cliId=v('oCli')
-  if(!cliId)return toast('Selecione um cliente','warn')
-  if(!_orcItens.length)return toast('Adicione pelo menos um item','warn')
-  // sync nomes de custom items
+  if(!cliId){toast('Selecione um cliente','warn');return null}
+  if(!_orcItens.length){toast('Adicione pelo menos um item','warn');return null}
   _orcItens.forEach((it,i)=>{if(it.prodId==='_custom'){const el=document.getElementById('orcItemNome'+i);if(el)it.nome=el.value}})
   const desc=parseFloat(v('oDesc'))||0
   const sub=_orcItens.reduce((a,it)=>a+(it.sub||0),0)
   const totalF=Math.max(0,sub-desc)
   const list=DB.get(S.ORC)||[]
   const valDias=parseInt(v('oVal'))||30
-  const data={
-    id:id||genId(),num:id?list.find(x=>x.id===id)?.num||nextNum(list):Math.max(nextNum(list),192308),
-    cliId,data:v('oData'),valDias,validade:addDays(v('oData'),valDias),
-    endObra:v('oEnd'),resp:v('oResp'),desc,pgto:v('oPgto'),
-    status:v('oStatus'),obs:v('oObs'),
-    itens:_orcItens,sub,totalF,
-    criadoPor:id?(list.find(x=>x.id===id)?.criadoPor||currentUser().user):currentUser().user
+  return{
+    data:{
+      id:id||genId(),num:id?list.find(x=>x.id===id)?.num||nextNum(list):Math.max(nextNum(list),192308),
+      cliId,data:v('oData'),valDias,validade:addDays(v('oData'),valDias),
+      endObra:v('oEnd'),resp:v('oResp'),desc,pgto:v('oPgto'),
+      status:v('oStatus'),obs:v('oObs'),
+      itens:JSON.parse(JSON.stringify(_orcItens)),sub,totalF,
+      criadoPor:id?(list.find(x=>x.id===id)?.criadoPor||currentUser().user):currentUser().user
+    },
+    list
   }
+}
+
+function salvarOrcamento(id){
+  const r=_buildOrcData(id);if(!r)return
+  const{data,list}=r
   if(id){const i=list.findIndex(x=>x.id===id);if(i>=0)list[i]=data;else list.push(data)}else list.push(data)
   DB.set(S.ORC,list);closeModal();toast('Orçamento salvo');renderOrcamentos()
+}
+
+function salvarEImprimirOrcamento(id){
+  const r=_buildOrcData(id);if(!r)return
+  const{data,list}=r
+  if(id){const i=list.findIndex(x=>x.id===id);if(i>=0)list[i]=data;else list.push(data)}else list.push(data)
+  DB.set(S.ORC,list)
+  toast('Salvo','ok',1500)
+  setTimeout(()=>imprimirOrcamento(id||data.id),150)
 }
 
 function excluirOrcamento(id){
