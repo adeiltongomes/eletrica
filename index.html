@@ -76,14 +76,14 @@ textarea{resize:vertical;min-height:70px}
 .bdg-r{background:rgba(244,67,54,.15);color:#EF5350}
 .bdg-gr{background:rgba(107,122,148,.15);color:#8A9BB5}
 .bdg-o{background:rgba(255,152,0,.15);color:#FFA726}
-.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:1000;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:1000;align-items:center;justify-content:center}
 .modal-bg.open{display:flex}
-.modal{background:var(--card);border:1px solid var(--b2);border-radius:14px;width:min(680px,95vw);max-height:92vh;overflow-y:auto;box-shadow:var(--sh);animation:fu .2s ease}
+.modal{background:var(--card);border:1px solid var(--b2);border-radius:14px;width:min(680px,95vw);max-height:92vh;overflow-y:auto;overflow-x:hidden;box-shadow:var(--sh);animation:fu .2s ease;display:flex;flex-direction:column}
 .modal-w{width:min(860px,95vw)}.modal-xl{width:min(1050px,97vw)}
-.mhdr{padding:18px 20px 14px;border-bottom:1px solid var(--b);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--card);z-index:2}
+.mhdr{padding:18px 20px 14px;border-bottom:1px solid var(--b);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--card);z-index:2;flex-shrink:0}
 .mtitle{font-size:15px;font-weight:700;color:var(--txt)}
-.mbody{padding:18px 20px}
-.mfoot{padding:12px 20px;border-top:1px solid var(--b);display:flex;gap:8px;justify-content:flex-end;position:sticky;bottom:0;background:var(--card)}
+.mbody{padding:18px 20px;flex:1;overflow-y:auto;overflow-x:hidden;min-height:0}
+.mfoot{padding:12px 20px;border-top:1px solid var(--b);display:flex;gap:8px;justify-content:flex-end;position:sticky;bottom:0;background:var(--card);flex-shrink:0}
 @keyframes fu{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 .chip{display:inline-flex;align-items:center;gap:3px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;background:var(--card2);border:1px solid var(--b);color:var(--txt3);cursor:pointer;transition:all .15s;user-select:none}
 .chip.sel{background:rgba(33,150,243,.18);border-color:var(--pri);color:var(--pril)}
@@ -182,16 +182,32 @@ textarea{resize:vertical;min-height:70px}
   .btn-xs{padding:6px 11px;font-size:12px}
   .btn-ico{padding:9px}
 
-  /* Modal — sheet de baixo */
-  .modal-bg{align-items:flex-end}
+  /* Modal — sheet de baixo, fixo e sem overflow */
+  .modal-bg{align-items:flex-end;backdrop-filter:none}
   .modal,.modal-w,.modal-xl{
     width:100vw!important;max-width:100vw!important;
-    border-radius:18px 18px 0 0;max-height:95vh;
+    border-radius:18px 18px 0 0;max-height:92vh;
     margin:0;animation:su .22s ease;
+    overflow-x:hidden!important;
   }
-  .mhdr{border-radius:18px 18px 0 0;padding:14px 16px 12px}
-  .mbody{padding:14px 16px}
-  .mfoot{padding:12px 16px;gap:8px}
+  .mhdr{border-radius:18px 18px 0 0;padding:14px 16px 12px;position:sticky;top:0}
+  .mbody{padding:12px 14px;overflow-x:hidden}
+  .mfoot{padding:10px 14px;gap:6px;flex-wrap:wrap}
+  .mfoot .btn{flex:1;justify-content:center;min-width:0}
+  /* Todo conteúdo dentro do modal cabe na largura */
+  .mbody *{max-width:100%;box-sizing:border-box}
+  .mbody input,.mbody select,.mbody textarea{width:100%}
+  /* Remove min-width de elementos que causam overflow */
+  .mbody .fr{gap:8px;margin-bottom:8px}
+  .chips{gap:4px}
+  .chip{padding:5px 9px;font-size:12px}
+  /* Itens do orçamento no modal */
+  .orc-item{padding:8px 10px}
+  .orc-item-bot .chips{gap:3px}
+  /* Seção novo cliente inline */
+  #novoCliInline .fr.c2{grid-template-columns:1fr}
+  /* Resumo total */
+  #orcItensArea{overflow-x:hidden}
 
   /* Itens do orçamento — reordenar */
   .orc-item-top{display:flex!important;flex-wrap:wrap;gap:8px;align-items:flex-start}
@@ -524,8 +540,17 @@ function openModal(title,body,foot,wide){
   const m=document.getElementById('modal')
   m.className='modal'+(wide==='xl'?' modal-xl':wide?(' modal-w'):'')
   document.getElementById('modalBg').classList.add('open')
+  // Trava scroll do fundo para não dançar em mobile
+  const main=document.querySelector('.main')
+  if(main)main.style.overflow='hidden'
+  document.body.style.overflow='hidden'
 }
-function closeModal(){document.getElementById('modalBg').classList.remove('open')}
+function closeModal(){
+  document.getElementById('modalBg').classList.remove('open')
+  const main=document.querySelector('.main')
+  if(main)main.style.overflow=''
+  document.body.style.overflow=''
+}
 
 function confirmarModal(msg,fn,btnLbl='Confirmar',btnCls='btn-d'){
   document.getElementById('cfmBody').innerHTML=msg
