@@ -278,7 +278,6 @@ async function _fsLoad(){
 
 function _fsListen(){
   if(!_fdb)return
-  // Ouve TODA a coleção e filtra pelo prefixo — funciona sem índice
   _fdb.collection('assinaturas').onSnapshot(snap=>{
     if(!_syncEnabled)return
     const latest={}
@@ -293,6 +292,34 @@ function _fsListen(){
       const current=localStorage.getItem(key)
       if(incoming!==current){localStorage.setItem(key,incoming);_onRemoteUpdate(key)}
     })
+  },err=>console.warn('listener err:',err))
+  // Polling a cada 15s como backup (garante sync mesmo se listener falhar)
+  setInterval(async()=>{
+    if(!_syncEnabled||!_fdb)return
+    try{
+      const latest=await _fsGetAll()
+      let changed=false
+      Object.entries(latest).forEach(([key,d])=>{
+        if(!d.data)return
+        const cur=localStorage.getItem(key)
+        if(d.data!==cur){localStorage.setItem(key,d.data);changed=true}
+      })
+      if(changed){updateBadges();nav(_page)}
+    }catch(e){}
+  },15000)
+  // Atualiza ao voltar para a aba
+  document.addEventListener('visibilitychange',async()=>{
+    if(document.visibilityState!=='visible'||!_syncEnabled||!_fdb)return
+    try{
+      const latest=await _fsGetAll()
+      let changed=false
+      Object.entries(latest).forEach(([key,d])=>{
+        if(!d.data)return
+        const cur=localStorage.getItem(key)
+        if(d.data!==cur){localStorage.setItem(key,d.data);changed=true}
+      })
+      if(changed){updateBadges();nav(_page);toast('🔄 Dados atualizados','info',2000)}
+    }catch(e){}
   })
 }
 
