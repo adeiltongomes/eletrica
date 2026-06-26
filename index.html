@@ -191,7 +191,7 @@ textarea{resize:vertical;min-height:70px}
       </div>
       <div style="display:flex;align-items:center;gap:10px">
         <button onclick="forceSyncAll()" id="syncBtn" style="font-size:11px;padding:4px 10px;background:var(--pri);color:#fff;border:none;border-radius:6px;cursor:pointer" title="Forçar envio de todos os dados para o Firebase">⬆ Sync</button>
-        <span id="syncBadge" title="Verificando sincronização..." style="font-size:18px;cursor:default;color:var(--txt4)">⬤</span>
+        <span id="syncBadge" title="Toque para buscar dados atualizados" style="font-size:18px;cursor:pointer;color:var(--txt4)" onclick="pullFromFirebase()">⬤</span>
         <span style="font-size:11px;color:var(--txt3)" id="topEmp"></span>
       </div>
     </div>
@@ -461,6 +461,35 @@ async function _preLoadCfg(){
       console.log('Config sincronizado do Firebase')
     }
   }catch(e){console.warn('preLoadCfg:',e)}
+}
+async function pullFromFirebase(){
+  const badge=document.getElementById('syncBadge')
+  if(badge){badge.style.color='#fa0'}
+  try{
+    if(!_fdb){
+      if(!firebase.apps.length)firebase.initializeApp(_AT_FB)
+      _fdb=firebase.firestore()
+      _fdb.settings({experimentalForceLongPolling:true,merge:true})
+    }
+    const latest=await _fsGetAll()
+    let updated=0
+    Object.entries(latest).forEach(([key,d])=>{
+      if(!d.data)return
+      const cur=localStorage.getItem(key)
+      if(d.data!==cur){localStorage.setItem(key,d.data);updated++}
+    })
+    if(badge){badge.style.color='#4f4'}
+    if(updated>0){
+      toast('✓ '+updated+' item(s) atualizado(s) do Firebase','ok')
+      nav(_page)
+      updateBadges()
+    }else{
+      toast('Já está atualizado','info')
+    }
+  }catch(e){
+    if(badge){badge.style.color='#f44'}
+    toast('Erro ao buscar Firebase: '+e.message,'warn')
+  }
 }
 async function forceSyncAll(){
   const btn=document.getElementById('syncBtn')
