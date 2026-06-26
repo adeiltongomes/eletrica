@@ -652,7 +652,16 @@ async function _loadSigPage(token){
         <div style="font-size:13px;color:#6B7A94">Este link não existe ou foi removido.</div></div>`
       return
     }
-    const sig=snap.data()
+    const sigRaw=snap.data()
+    // Fetch current product catalog from Firestore to merge fresh attrs (cor, botoes, etc.)
+    let _prods=[]
+    try{const pd=await _fdb.collection('at_sync').doc('pro').get();if(pd.exists)_prods=JSON.parse(pd.data().data||'[]')}catch(e){console.warn('prod load:',e)}
+    const _mergeItemAttrs=itens=>(itens||[]).map(it=>{
+      const p=it.prodId&&it.prodId!=='_custom'?_prods.find(x=>x.id===it.prodId):null
+      if(!p)return{...it}
+      return{...it,...p,prodId:it.prodId,nome:p.nome,qtd:it.qtd,un:it.un,pu:it.pu,sub:it.sub,locais:it.locais,obs:it.obs,cat:it.cat}
+    })
+    const sig=sigRaw.orc?{...sigRaw,orc:{...sigRaw.orc,itens:_mergeItemAttrs(sigRaw.orc?.itens)}}:sigRaw
     const sigProdIds=(sig.orc?.itens||[]).map(it=>it.prodId).filter(id=>id&&id!=='_custom')
     if(sigProdIds.length)await _loadProdImgs(sigProdIds)
     el.innerHTML=sig.signed?_sigJaAssinou(sig):_sigForm(sig,token)
@@ -731,6 +740,7 @@ function _sigForm(sig,token){
     <div style="font-size:11px;font-weight:700;color:#2196F3;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px">⚡ ${e.fantasia||e.nome||'AccertTech'}</div>
     <div style="font-size:24px;font-weight:900;color:#E8EDF5;margin-bottom:2px">ORC-${String(o.num||0).padStart(4,'0')}</div>
     <div style="font-size:12px;color:#6B7A94">${fmtDate(o.data||'')}${o.validade?' · válido até '+fmtDate(o.validade):''}</div>
+    ${o.dataInicio||o.dataFim?`<div style="font-size:12px;color:#90CAF9;margin-top:4px">🗓️ Serviço: ${o.dataInicio?fmtDate(o.dataInicio):'?'}${o.dataFim?' → '+fmtDate(o.dataFim):''}</div>`:''}
   </div>
   <div style="background:#1A1F2E;border:1px solid #252D40;border-radius:12px;padding:14px 16px;margin-bottom:12px">
     <div style="font-size:10px;font-weight:700;color:#6B7A94;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px">Cliente</div>
@@ -866,7 +876,8 @@ async function gerarLinkAssinatura(orcId){
     }
     const _nomesAtuais=itens=>(itens||[]).map(it=>{
       const pAtual=it.prodId&&it.prodId!=='_custom'?(DB.get(S.PRO)||[]).find(p=>p.id===it.prodId):null
-      return{...it,nome:pAtual?pAtual.nome:it.nome}
+      if(!pAtual)return{...it}
+      return{...it,...pAtual,prodId:it.prodId,nome:pAtual.nome,qtd:it.qtd,un:it.un,pu:it.pu,sub:it.sub,locais:it.locais,obs:it.obs,cat:it.cat}
     })
     let token=o.sigToken
     if(token){
@@ -875,7 +886,7 @@ async function gerarLinkAssinatura(orcId){
         const sigAtual=snap.data()
         const itensAtualizados=_nomesAtuais(sigAtual.orc?.itens)
         const orcAtualizado={...sigAtual.orc,itens:itensAtualizados,
-          totalF:o.totalF||0,sub:o.sub||0,desc:o.desc||0,pgto:o.pgto||'',obs:o.obs||'',endObra:o.endObra||''}
+          totalF:o.totalF||0,sub:o.sub||0,desc:o.desc||0,pgto:o.pgto||'',obs:o.obs||'',endObra:o.endObra||'',dataInicio:o.dataInicio||'',dataFim:o.dataFim||''}
         const sigAtualizado={...sigAtual,orc:orcAtualizado,
           empresa:{nome:emp.nome,fantasia:emp.fantasia,fone:emp.fone,wa:emp.wa||''},
           cli:{nome:cli.nome||'',fone:cli.fone||''}}
@@ -894,7 +905,7 @@ async function gerarLinkAssinatura(orcId){
     const sigData={
       orcId,
       empresa:{nome:emp.nome,fantasia:emp.fantasia,fone:emp.fone,wa:emp.wa||''},
-      orc:{num:o.num,data:o.data,validade:o.validade,endObra:o.endObra||'',pgto:o.pgto||'',obs:o.obs||'',totalF:o.totalF||0,sub:o.sub||0,desc:o.desc||0,
+      orc:{num:o.num,data:o.data,validade:o.validade,endObra:o.endObra||'',dataInicio:o.dataInicio||'',dataFim:o.dataFim||'',pgto:o.pgto||'',obs:o.obs||'',totalF:o.totalF||0,sub:o.sub||0,desc:o.desc||0,
         itens:_nomesAtuais(o.itens)},
       cli:{nome:cli.nome||'',fone:cli.fone||''},
       signed:false,signedAt:null,signedNome:null,createdAt:Date.now()
@@ -1533,9 +1544,11 @@ function editarOrcamento(id){
     <div class="fg"><label>Data</label><input id="oData" type="date" value="${o?o.data:hoje}"></div>
     <div class="fg"><label>Validade (dias)</label><input id="oVal" type="number" value="${b?b.valDias||30:30}" min="1"></div>
   </div>
-  <div class="fr c2">
-    <div class="fg"><label>Endereço da Obra</label><input id="oEnd" value="${b?b.endObra||'':''}" placeholder="Rua, número, bairro, cidade"></div>
+  <div class="fr"><div class="fg"><label>Endereço da Obra</label><input id="oEnd" value="${b?b.endObra||'':''}" placeholder="Rua, número, bairro, cidade"></div></div>
+  <div class="fr c3">
     <div class="fg"><label>Responsável Técnico</label><input id="oResp" value="${b?b.resp||getEmpresa().resp||'':getEmpresa().resp||''}"></div>
+    <div class="fg"><label>Data de Início</label><input id="oDataInicio" type="date" value="${b?b.dataInicio||'':''}"></div>
+    <div class="fg"><label>Data de Término</label><input id="oDataFim" type="date" value="${b?b.dataFim||'':''}"></div>
   </div>
   <div class="fr c3">
     <div class="fg"><label>Desconto (R$)</label><input id="oDesc" type="number" step="0.01" min="0" value="${b?b.desc||0:0}" oninput="recalcOrc()"></div>
@@ -1664,7 +1677,7 @@ function _buildOrcData(id){
     data:{
       id:id||genId(),num:id?list.find(x=>x.id===id)?.num||nextNum(list):Math.max(nextNum(list),192308),
       cliId,data:v('oData'),valDias,validade:addDays(v('oData'),valDias),
-      endObra:v('oEnd'),resp:v('oResp'),desc,pgto:v('oPgto'),
+      endObra:v('oEnd'),resp:v('oResp'),dataInicio:v('oDataInicio'),dataFim:v('oDataFim'),desc,pgto:v('oPgto'),
       status:v('oStatus'),obs:v('oObs'),
       itens:JSON.parse(JSON.stringify(_orcItens)),sub,totalF,
       criadoPor:id?(list.find(x=>x.id===id)?.criadoPor||currentUser().user):currentUser().user
@@ -2112,13 +2125,15 @@ async function imprimirOrcamento(id,sigData=null){
   const infoCells=[]
   if(o.data)infoCells.push({l:'Data',v:fmtDate(o.data)})
   if(o.validade)infoCells.push({l:'Válido até',v:fmtDate(o.validade)})
+  if(o.dataInicio)infoCells.push({l:'Início do Serviço',v:fmtDate(o.dataInicio)})
+  if(o.dataFim)infoCells.push({l:'Término do Serviço',v:fmtDate(o.dataFim)})
   if(cli.nome)infoCells.push({l:'Cliente',v:cli.nome})
   if(cli.fone)infoCells.push({l:'Telefone',v:cli.fone})
   if(o.endObra)infoCells.push({l:'Endereço da Obra',v:o.endObra,full:true})
   if(o.resp)infoCells.push({l:'Responsável Técnico',v:o.resp})
   if(o.pgto)infoCells.push({l:'Pagamento',v:o.pgto})
 
-  const prodIdsComImg=(o.itens||[]).filter(it=>it.prodId&&it.prodId!=='_custom'&&prods.find(p=>p.id===it.prodId)?.img).map(it=>it.prodId)
+  const prodIdsComImg=(o.itens||[]).filter(it=>it.prodId&&it.prodId!=='_custom').map(it=>it.prodId)
   await _loadProdImgs(prodIdsComImg)
 
   const cats=[...new Set(o.itens.map(it=>it.cat||'outro'))]
@@ -2132,7 +2147,8 @@ async function imprimirOrcamento(id,sigData=null){
       const prodAtual=it.prodId&&it.prodId!=='_custom'?prods.find(p=>p.id===it.prodId):null
       const nomeImpresso=prodAtual?prodAtual.nome:it.nome
       const imgSrc=it.prodId&&it.prodId!=='_custom'?_imgCache[it.prodId]:null
-      const attrs=getAttrTagsForPrint(it)
+      const itAtual=prodAtual?{...it,...prodAtual,prodId:it.prodId,nome:nomeImpresso,qtd:it.qtd,un:it.un,pu:it.pu,sub:it.sub,locais:it.locais,obs:it.obs,cat:it.cat}:it
+      const attrs=getAttrTagsForPrint(itAtual)
       const locais=(it.locais||[]).map(l=>`<span class="local-tag">${l}</span>`).join(' ')
       rowsHtml+=`<tr>
         <td class="num">${numGlobal}</td>
