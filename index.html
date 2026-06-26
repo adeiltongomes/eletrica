@@ -770,7 +770,7 @@ async function gerarLinkAssinatura(orcId){
       orcId,
       empresa:{nome:emp.nome,fantasia:emp.fantasia,fone:emp.fone,wa:emp.wa||''},
       orc:{num:o.num,data:o.data,validade:o.validade,endObra:o.endObra||'',pgto:o.pgto||'',obs:o.obs||'',totalF:o.totalF||0,sub:o.sub||0,desc:o.desc||0,
-        itens:JSON.parse(JSON.stringify(o.itens||[]))},
+        itens:(o.itens||[]).map(it=>{const pAtual=it.prodId&&it.prodId!=='_custom'?(DB.get(S.PRO)||[]).find(p=>p.id===it.prodId):null;return{...it,nome:pAtual?pAtual.nome:it.nome}})},
       cli:{nome:cli.nome||'',fone:cli.fone||''},
       signed:false,signedAt:null,signedNome:null,createdAt:Date.now()
     }
@@ -1866,6 +1866,7 @@ td{padding:7px 10px;border-bottom:1px solid #E0E0E0;vertical-align:top}
 function imprimirOrcamento(id){
   const o=(DB.get(S.ORC)||[]).find(x=>x.id===id);if(!o)return
   const cli=(DB.get(S.CLI)||[]).find(x=>x.id===o.cliId)||{}
+  const prods=DB.get(S.PRO)||[]
   const e=getEmpresa()
   const infoCells=[]
   if(o.data)infoCells.push({l:'Data',v:fmtDate(o.data)})
@@ -1884,11 +1885,13 @@ function imprimirOrcamento(id){
     rowsHtml+=`<tr><td colspan="7" style="background:#EEF4FF;color:#1565C0;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;padding:6px 10px">${catIco(cat)} ${catNome(cat)}</td></tr>`
     items.forEach(it=>{
       numGlobal++
+      const prodAtual=it.prodId&&it.prodId!=='_custom'?prods.find(p=>p.id===it.prodId):null
+      const nomeImpresso=prodAtual?prodAtual.nome:it.nome
       const attrs=getAttrTagsForPrint(it)
       const locais=(it.locais||[]).map(l=>`<span class="local-tag">${l}</span>`).join(' ')
       rowsHtml+=`<tr>
         <td class="num">${numGlobal}</td>
-        <td>${it.nome||'—'}${attrs?`<br>${attrs}`:''}${locais?`<br>${locais}`:''}${it.obs?`<br><span class="obs-item">${it.obs}</span>`:''}</td>
+        <td>${nomeImpresso||'—'}${attrs?`<br>${attrs}`:''}${locais?`<br>${locais}`:''}${it.obs?`<br><span class="obs-item">${it.obs}</span>`:''}</td>
         <td class="qtd">${it.qtd||1}</td>
         <td>${it.un||'un'}</td>
         <td class="pr">${fmtR(it.pu||0)}</td>
