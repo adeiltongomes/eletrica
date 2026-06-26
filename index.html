@@ -737,7 +737,22 @@ async function _assinarOrcamento(token){
   try{
     await _fdb.collection('sigs').doc(token).update({signed:true,signedAt:Date.now(),signedImg:imgData,signedNome:null})
     const snap=await _fdb.collection('sigs').doc(token).get()
-    document.getElementById('sigContent').innerHTML=_sigJaAssinou(snap.data())
+    const sigData=snap.data()
+    // Atualiza status do orçamento para "aprovado" no banco central
+    if(sigData.orcId){
+      try{
+        const orcDoc=await _fdb.collection('at_sync').doc('orc').get()
+        if(orcDoc.exists){
+          const orcs=JSON.parse(orcDoc.data().data||'[]')
+          const idx=orcs.findIndex(x=>x.id===sigData.orcId)
+          if(idx>=0&&orcs[idx].status!=='aprovado'){
+            orcs[idx].status='aprovado'
+            await _fdb.collection('at_sync').doc('orc').set({data:JSON.stringify(orcs),ts:Date.now()})
+          }
+        }
+      }catch(err){console.warn('status update:',err)}
+    }
+    document.getElementById('sigContent').innerHTML=_sigJaAssinou(sigData)
   }catch(e){
     if(btn){btn.disabled=false;btn.textContent='✅ Confirmar e Assinar'}
     alert('Erro ao assinar: '+e.message)
@@ -775,6 +790,12 @@ async function gerarLinkAssinatura(orcId){
           empresa:{nome:emp.nome,fantasia:emp.fantasia,fone:emp.fone,wa:emp.wa||''},
           cli:{nome:cli.nome||'',fone:cli.fone||''}}
         if(!sigAtual.signed)await _fdb.collection('sigs').doc(token).update({orc:orcAtualizado,empresa:sigAtualizado.empresa,cli:sigAtualizado.cli})
+        // Se já está assinado, atualiza status local para "aprovado"
+        if(sigAtual.signed){
+          const llist=DB.get(S.ORC)||[]
+          const lidx=llist.findIndex(x=>x.id===orcId)
+          if(lidx>=0&&llist[lidx].status!=='aprovado'){llist[lidx].status='aprovado';DB.set(S.ORC,llist);renderOrcamentos()}
+        }
         _showSigModal(token,sigAtualizado);return
       }
     }
@@ -804,12 +825,17 @@ function _showSigModal(token,sig){
   const waDest=_waLink(wa)
   const orcLabel='ORC-'+String(sig.orc?.num||0).padStart(4,'0')
   const cliNomeStr=sig.cli?.nome||''
-  const waMsg=waDest?waDest+'?text='+encodeURIComponent('Olá'+( cliNomeStr?' '+cliNomeStr:'')+', segue o link para aprovar o orçamento '+orcLabel+':\n'+url):''
+  const waMsg=waDest?waDest+'?text='+encodeURIComponent('Olá'+(cliNomeStr?' '+cliNomeStr:'')+', segue o link para aprovar o orçamento '+orcLabel+':\n'+url):''
   const signed=sig.signed
   const dt=sig.signedAt?new Date(sig.signedAt).toLocaleString('pt-BR'):''
   document.getElementById('sigModalContent').innerHTML=`
-    ${signed?`<div style="background:rgba(76,175,80,.12);border:1px solid rgba(76,175,80,.3);border-radius:10px;padding:11px 14px;margin-bottom:16px;color:#66BB6A;font-size:13px;font-weight:600;text-align:center">
-      ✅ Assinado por <strong>${sig.signedNome}</strong>${dt?' · '+dt:''}
+    ${signed?`<div style="background:rgba(76,175,80,.12);border:1px solid rgba(76,175,80,.3);border-radius:10px;padding:14px;margin-bottom:14px;text-align:center">
+      <div style="color:#66BB6A;font-size:13px;font-weight:700;margin-bottom:4px">✅ Orçamento aprovado e assinado</div>
+      ${dt?`<div style="color:var(--txt3);font-size:11px;margin-bottom:${sig.signedImg?'12px':'0'}">em ${dt}</div>`:''}
+      ${sig.signedImg?`<div style="background:#0a0d14;border:1px solid #2e3850;border-radius:8px;padding:8px;display:inline-block;margin-top:4px">
+        <div style="font-size:10px;color:var(--txt3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.8px">Assinatura do cliente</div>
+        <img src="${sig.signedImg}" style="max-width:260px;height:auto;display:block">
+      </div>`:''}
     </div>`:
     `<div style="background:rgba(255,179,0,.08);border:1px solid rgba(255,179,0,.2);border-radius:10px;padding:10px 14px;margin-bottom:16px;color:var(--acc);font-size:12px;text-align:center">
       ⏳ Aguardando assinatura do cliente
@@ -819,9 +845,9 @@ function _showSigModal(token,sig){
       <input id="sigLinkInput" value="${url}" readonly style="flex:1;font-size:12px;background:var(--card2);border:1px solid var(--b2);border-radius:6px;color:var(--txt2);padding:8px 10px;cursor:text">
       <button class="btn btn-o btn-sm" onclick="navigator.clipboard.writeText('${url}').then(()=>toast('Link copiado!'))">📋</button>
     </div>
-    ${waMsg?`<a href="${waMsg}" target="_blank" class="btn btn-s" style="width:100%;justify-content:center;text-decoration:none;display:flex;font-size:13px;padding:12px">
+    ${!signed&&waMsg?`<a href="${waMsg}" target="_blank" class="btn btn-s" style="width:100%;justify-content:center;text-decoration:none;display:flex;font-size:13px;padding:12px">
       💬 Enviar no WhatsApp</a>`:
-    `<div style="font-size:12px;color:var(--txt3);text-align:center">Configure o WhatsApp da empresa em Configurações para envio direto.</div>`}
+    (!signed?`<div style="font-size:12px;color:var(--txt3);text-align:center">Configure o WhatsApp da empresa em Configurações para envio direto.</div>`:'')}
     <div style="font-size:11px;color:var(--txt4);margin-top:14px;text-align:center">O cliente pode assinar apenas uma vez pelo link.</div>
   `
 }
