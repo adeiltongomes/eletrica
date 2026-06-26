@@ -284,6 +284,9 @@ textarea{resize:vertical;min-height:70px}
   </div>
 </div>
 
+<div id="sigPage" style="display:none;min-height:100vh;background:#0F1117;padding:20px 16px;font-family:'Segoe UI',system-ui,sans-serif">
+  <div id="sigContent" style="max-width:560px;margin:0 auto;padding-bottom:40px"></div>
+</div>
 <div id="toast"></div>
 <div id="sideOverlay" style="display:none;position:fixed;inset:0;z-index:199;background:rgba(0,0,0,.5)" onclick="toggleSidebar()"></div>
 
@@ -538,6 +541,213 @@ async function _preLoadCfg(){
     }
   }catch(e){console.warn('preLoadCfg:',e)}
 }
+// ── Assinatura digital ──
+function _waLink(wa){
+  if(!wa)return''
+  const n=wa.replace(/\D/g,'')
+  if(!n)return''
+  const full=n.startsWith('55')&&n.length>=12?n:'55'+n
+  return'https://wa.me/'+full
+}
+
+async function _initFbPublic(){
+  if(_fdb)return
+  if(!firebase.apps.length)firebase.initializeApp(_AT_FB)
+  _fdb=firebase.firestore()
+  _fdb.settings({experimentalForceLongPolling:true,merge:true})
+}
+
+async function _loadSigPage(token){
+  const el=document.getElementById('sigContent')
+  el.innerHTML='<div style="text-align:center;padding:80px 20px;color:#6B7A94;font-size:14px">⏳ Carregando...</div>'
+  try{
+    await _initFbPublic()
+    const snap=await _fdb.collection('sigs').doc(token).get()
+    if(!snap.exists){
+      el.innerHTML=`<div style="text-align:center;padding:80px 20px">
+        <div style="font-size:48px;margin-bottom:16px">⚠️</div>
+        <div style="font-size:18px;font-weight:700;color:#E8EDF5;margin-bottom:8px">Link inválido</div>
+        <div style="font-size:13px;color:#6B7A94">Este link não existe ou foi removido.</div></div>`
+      return
+    }
+    const sig=snap.data()
+    el.innerHTML=sig.signed?_sigJaAssinou(sig):_sigForm(sig,token)
+  }catch(e){
+    el.innerHTML=`<div style="text-align:center;padding:60px 20px;color:#EF5350">Erro ao carregar: ${e.message}</div>`
+  }
+}
+
+function _sigJaAssinou(sig){
+  const e=sig.empresa||{}
+  const waLink=_waLink(e.wa||e.fone||'')
+  const wa=sig.empresa?.wa||sig.empresa?.fone||''
+  const dt=sig.signedAt?new Date(sig.signedAt).toLocaleString('pt-BR'):''
+  const waMsg=wa?_waLink(wa)+'?text='+encodeURIComponent('Olá! Tenho dúvidas sobre meu orçamento.'):''
+  return`
+  <div style="text-align:center;padding:20px 0 28px">
+    <div style="font-size:11px;font-weight:700;color:#2196F3;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:20px">⚡ ${e.fantasia||e.nome||'AccertTech'}</div>
+    <div style="font-size:52px;margin-bottom:14px">✅</div>
+    <div style="font-size:20px;font-weight:800;color:#4CAF50;margin-bottom:8px">Orçamento aprovado!</div>
+    <div style="font-size:14px;color:#B0BCCF;margin-bottom:4px">
+      ${sig.signedNome?`Assinado por <strong style="color:#E8EDF5">${sig.signedNome}</strong>`:'Este orçamento já foi aprovado'}
+    </div>
+    ${dt?`<div style="font-size:12px;color:#6B7A94;margin-bottom:28px">em ${dt}</div>`:'<div style="margin-bottom:28px"></div>'}
+    <div style="background:#1A1F2E;border:1px solid #252D40;border-radius:14px;padding:16px 20px;margin-bottom:20px;text-align:left">
+      <div style="font-size:11px;color:#6B7A94;margin-bottom:3px">Orçamento</div>
+      <div style="font-size:15px;font-weight:800;color:#E8EDF5">ORC-${String(sig.orc?.num||0).padStart(4,'0')}</div>
+      ${sig.cli?.nome?`<div style="font-size:12px;color:#B0BCCF;margin-top:4px">${sig.cli.nome}</div>`:''}
+      <div style="font-size:18px;font-weight:800;color:#FFB300;margin-top:8px">${fmtR(sig.orc?.totalF||0)}</div>
+    </div>
+    ${waMsg?`<div style="font-size:12px;color:#6B7A94;margin-bottom:10px">Tem dúvidas? Entre em contato:</div>
+    <a href="${waMsg}" target="_blank" style="display:inline-flex;align-items:center;gap:9px;padding:14px 24px;background:#25D366;color:#fff;border-radius:12px;font-weight:700;text-decoration:none;font-size:14px">
+      💬 Chamar no WhatsApp
+    </a>`:''}
+  </div>`
+}
+
+function _sigForm(sig,token){
+  const o=sig.orc||{}
+  const cli=sig.cli||{}
+  const e=sig.empresa||{}
+  const wa=e.wa||e.fone||''
+  const waMsg=wa?_waLink(wa)+'?text='+encodeURIComponent('Olá! Tenho dúvidas sobre o orçamento ORC-'+String(o.num||0).padStart(4,'0')+'.'):''
+  const itens=(o.itens||[]).map(it=>`
+    <tr>
+      <td style="padding:8px 10px;border-bottom:1px solid #252D40;color:#B0BCCF;font-size:13px">${it.nome||'—'}</td>
+      <td style="padding:8px 10px;border-bottom:1px solid #252D40;text-align:center;color:#6B7A94;font-size:12px;white-space:nowrap">${it.qtd||1} ${it.un||'un'}</td>
+      <td style="padding:8px 10px;border-bottom:1px solid #252D40;text-align:right;font-weight:700;color:#FFB300;font-size:13px;white-space:nowrap">${fmtR(it.sub||0)}</td>
+    </tr>`).join('')
+  return`
+  <div style="background:#13171F;border-radius:14px;padding:18px 20px;margin-bottom:12px">
+    <div style="font-size:11px;font-weight:700;color:#2196F3;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px">⚡ ${e.fantasia||e.nome||'AccertTech'}</div>
+    <div style="font-size:24px;font-weight:900;color:#E8EDF5;margin-bottom:2px">ORC-${String(o.num||0).padStart(4,'0')}</div>
+    <div style="font-size:12px;color:#6B7A94">${fmtDate(o.data||'')}${o.validade?' · válido até '+fmtDate(o.validade):''}</div>
+  </div>
+  <div style="background:#1A1F2E;border:1px solid #252D40;border-radius:12px;padding:14px 16px;margin-bottom:12px">
+    <div style="font-size:10px;font-weight:700;color:#6B7A94;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px">Cliente</div>
+    <div style="font-size:15px;font-weight:700;color:#E8EDF5">${cli.nome||'—'}</div>
+    ${o.endObra?`<div style="font-size:12px;color:#6B7A94;margin-top:3px">📍 ${o.endObra}</div>`:''}
+  </div>
+  ${itens?`<div style="background:#1A1F2E;border:1px solid #252D40;border-radius:12px;overflow:hidden;margin-bottom:12px">
+    <div style="font-size:10px;font-weight:700;color:#6B7A94;text-transform:uppercase;letter-spacing:1px;padding:12px 14px 6px">Itens do Orçamento</div>
+    <table style="width:100%;border-collapse:collapse">
+      <thead><tr>
+        <th style="padding:6px 10px;background:#1E2535;text-align:left;font-size:9px;color:#6B7A94;font-weight:700;text-transform:uppercase">Descrição</th>
+        <th style="padding:6px 10px;background:#1E2535;text-align:center;font-size:9px;color:#6B7A94;font-weight:700;text-transform:uppercase">Qtd</th>
+        <th style="padding:6px 10px;background:#1E2535;text-align:right;font-size:9px;color:#6B7A94;font-weight:700;text-transform:uppercase">Total</th>
+      </tr></thead>
+      <tbody>${itens}</tbody>
+    </table>
+  </div>`:''}
+  <div style="background:#1A2540;border-radius:12px;padding:14px 18px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center">
+    <div>
+      ${o.desc?`<div style="font-size:11px;color:#90CAF9">Desconto: -${fmtR(o.desc)}</div>`:''}
+      <div style="font-size:12px;color:#B0BCCF">TOTAL</div>
+    </div>
+    <div style="font-size:26px;font-weight:900;color:#FFB300">${fmtR(o.totalF||0)}</div>
+  </div>
+  ${o.pgto?`<div style="background:#1A1F2E;border:1px solid #252D40;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:13px;color:#B0BCCF"><strong style="color:#E8EDF5">Pagamento:</strong> ${o.pgto}</div>`:''}
+  ${o.obs?`<div style="background:#1A1F2E;border:1px solid #252D40;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:13px;color:#B0BCCF"><strong style="color:#E8EDF5">Observações:</strong><br>${o.obs}</div>`:''}
+  <div style="background:#1A1F2E;border:2px solid #2196F3;border-radius:14px;padding:18px;margin-bottom:16px">
+    <div style="font-size:14px;font-weight:700;color:#E8EDF5;margin-bottom:4px">Aprovar este orçamento</div>
+    <div style="font-size:12px;color:#6B7A94;margin-bottom:14px">Ao assinar, você confirma a aprovação e autoriza o início dos serviços.</div>
+    <input id="sigNome" placeholder="Seu nome completo *" style="width:100%;padding:12px 14px;background:#0A0D14;border:1.5px solid #2E3850;border-radius:9px;color:#E8EDF5;font-size:15px;font-family:inherit;outline:none;margin-bottom:12px;box-sizing:border-box" oninput="this.style.borderColor=this.value.trim()?'#4CAF50':'#2E3850'">
+    <button onclick="_assinarOrcamento('${token}')" style="width:100%;padding:15px;background:#4CAF50;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:.3px">
+      ✅ Confirmar e Assinar
+    </button>
+  </div>
+  ${waMsg?`<div style="text-align:center">
+    <div style="font-size:12px;color:#6B7A94;margin-bottom:10px">Tem dúvidas antes de assinar?</div>
+    <a href="${waMsg}" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:12px 22px;background:#25D366;color:#fff;border-radius:10px;font-weight:700;text-decoration:none;font-size:13px">
+      💬 Falar com ${e.fantasia||e.nome||'a empresa'}
+    </a>
+  </div>`:''}
+  `
+}
+
+async function _assinarOrcamento(token){
+  const nome=(document.getElementById('sigNome')?.value||'').trim()
+  if(!nome){document.getElementById('sigNome').style.borderColor='#F44336';return alert('Informe seu nome completo para assinar.')}
+  const btn=document.querySelector('#sigContent button[onclick*="_assinarOrcamento"]')
+  if(btn){btn.disabled=true;btn.textContent='Assinando...'}
+  try{
+    await _fdb.collection('sigs').doc(token).update({signed:true,signedAt:Date.now(),signedNome:nome})
+    const snap=await _fdb.collection('sigs').doc(token).get()
+    document.getElementById('sigContent').innerHTML=_sigJaAssinou(snap.data())
+  }catch(e){
+    if(btn){btn.disabled=false;btn.textContent='✅ Confirmar e Assinar'}
+    alert('Erro ao assinar: '+e.message)
+  }
+}
+
+async function gerarLinkAssinatura(orcId){
+  const list=DB.get(S.ORC)||[]
+  const o=list.find(x=>x.id===orcId)
+  if(!o)return toast('Orçamento não encontrado','warn')
+  const emp=getEmpresa()
+  const cli=(DB.get(S.CLI)||[]).find(x=>x.id===o.cliId)||{}
+  openModal('🔗 Link de Assinatura',
+    `<div id="sigModalContent" style="text-align:center;padding:24px 0;color:var(--txt3)">⏳ Gerando link...</div>`,
+    `<button class="btn btn-o btn-sm" onclick="closeModal()">Fechar</button>`)
+  try{
+    if(!_fdb){
+      if(!firebase.apps.length)firebase.initializeApp(_AT_FB)
+      _fdb=firebase.firestore()
+      _fdb.settings({experimentalForceLongPolling:true,merge:true})
+    }
+    let token=o.sigToken
+    if(token){
+      const snap=await _fdb.collection('sigs').doc(token).get()
+      if(snap.exists){_showSigModal(token,snap.data());return}
+    }
+    // Gera token de 8 chars base-36
+    token=(Math.random().toString(36).slice(2,6)+Math.random().toString(36).slice(2,6)).slice(0,8)
+    const sigData={
+      orcId,
+      empresa:{nome:emp.nome,fantasia:emp.fantasia,fone:emp.fone,wa:emp.wa||''},
+      orc:{num:o.num,data:o.data,validade:o.validade,endObra:o.endObra||'',pgto:o.pgto||'',obs:o.obs||'',totalF:o.totalF||0,sub:o.sub||0,desc:o.desc||0,
+        itens:(o.itens||[]).map(it=>({nome:it.nome,qtd:it.qtd,un:it.un,pu:it.pu,sub:it.sub}))},
+      cli:{nome:cli.nome||'',fone:cli.fone||''},
+      signed:false,signedAt:null,signedNome:null,createdAt:Date.now()
+    }
+    await _fdb.collection('sigs').doc(token).set(sigData)
+    // Salva token no orçamento
+    const idx=list.findIndex(x=>x.id===orcId)
+    if(idx>=0){list[idx].sigToken=token;DB.set(S.ORC,list)}
+    _showSigModal(token,sigData)
+  }catch(e){
+    document.getElementById('sigModalContent').innerHTML=`<div style="color:var(--dan);text-align:center">Erro: ${e.message}</div>`
+  }
+}
+
+function _showSigModal(token,sig){
+  const url=location.origin+location.pathname+'?sig='+token
+  const wa=sig.empresa?.wa||sig.empresa?.fone||''
+  const waDest=_waLink(wa)
+  const orcLabel='ORC-'+String(sig.orc?.num||0).padStart(4,'0')
+  const cliNomeStr=sig.cli?.nome||''
+  const waMsg=waDest?waDest+'?text='+encodeURIComponent('Olá'+( cliNomeStr?' '+cliNomeStr:'')+', segue o link para aprovar o orçamento '+orcLabel+':\n'+url):''
+  const signed=sig.signed
+  const dt=sig.signedAt?new Date(sig.signedAt).toLocaleString('pt-BR'):''
+  document.getElementById('sigModalContent').innerHTML=`
+    ${signed?`<div style="background:rgba(76,175,80,.12);border:1px solid rgba(76,175,80,.3);border-radius:10px;padding:11px 14px;margin-bottom:16px;color:#66BB6A;font-size:13px;font-weight:600;text-align:center">
+      ✅ Assinado por <strong>${sig.signedNome}</strong>${dt?' · '+dt:''}
+    </div>`:
+    `<div style="background:rgba(255,179,0,.08);border:1px solid rgba(255,179,0,.2);border-radius:10px;padding:10px 14px;margin-bottom:16px;color:var(--acc);font-size:12px;text-align:center">
+      ⏳ Aguardando assinatura do cliente
+    </div>`}
+    <div style="font-size:11px;color:var(--txt3);margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px">Link para o cliente</div>
+    <div style="display:flex;gap:6px;margin-bottom:14px;align-items:center">
+      <input id="sigLinkInput" value="${url}" readonly style="flex:1;font-size:12px;background:var(--card2);border:1px solid var(--b2);border-radius:6px;color:var(--txt2);padding:8px 10px;cursor:text">
+      <button class="btn btn-o btn-sm" onclick="navigator.clipboard.writeText('${url}').then(()=>toast('Link copiado!'))">📋</button>
+    </div>
+    ${waMsg?`<a href="${waMsg}" target="_blank" class="btn btn-s" style="width:100%;justify-content:center;text-decoration:none;display:flex;font-size:13px;padding:12px">
+      💬 Enviar no WhatsApp</a>`:
+    `<div style="font-size:12px;color:var(--txt3);text-align:center">Configure o WhatsApp da empresa em Configurações para envio direto.</div>`}
+    <div style="font-size:11px;color:var(--txt4);margin-top:14px;text-align:center">O cliente pode assinar apenas uma vez pelo link.</div>
+  `
+}
+
 function logout(){
   sessionStorage.removeItem('at_ok')
   sessionStorage.removeItem('at_session')
@@ -946,6 +1156,7 @@ function renderOrcamentos(){
       <td onclick="event.stopPropagation()" style="white-space:nowrap">
         <button class="btn btn-g btn-ico" onclick="imprimirOrcamento('${o.id}')" title="Imprimir">🖨️</button>
         <button class="btn btn-g btn-ico" onclick="novaOSdeOrc('${o.id}')" title="Criar OS">🔧</button>
+        <button class="btn btn-g btn-ico" onclick="gerarLinkAssinatura('${o.id}')" title="Link assinatura"${o.sigToken?` style="color:var(--suc)"`:''}>🔗</button>
         <button class="btn btn-g btn-ico" onclick="excluirOrcamento('${o.id}')">🗑️</button>
       </td>
     </tr>`).join(''):
@@ -966,6 +1177,7 @@ function renderOrcamentos(){
       <div class="mc-acts" onclick="event.stopPropagation()">
         <button class="btn btn-g btn-ico btn-sm" onclick="imprimirOrcamento('${o.id}')">🖨️</button>
         <button class="btn btn-g btn-ico btn-sm" onclick="novaOSdeOrc('${o.id}')">🔧</button>
+        <button class="btn btn-g btn-ico btn-sm" onclick="gerarLinkAssinatura('${o.id}')"${o.sigToken?` style="color:var(--suc)"`:''}>🔗</button>
         <button class="btn btn-g btn-ico btn-sm" onclick="excluirOrcamento('${o.id}')">🗑️</button>
       </div>
     </div>
@@ -1038,6 +1250,7 @@ function editarOrcamento(id){
     <div style="display:flex;justify-content:space-between;border-top:1px solid var(--b);padding-top:8px;margin-top:4px"><span style="font-weight:700;color:var(--txt)">TOTAL</span><span style="font-weight:800;font-size:18px;color:var(--acc)" id="oTotalDisp">${fmtR(0)}</span></div>
   </div>`,
   `<button class="btn btn-o btn-sm" onclick="closeModal()">Cancelar</button>
+   ${id?`<button class="btn btn-o btn-sm" onclick="gerarLinkAssinatura('${id}')">🔗 Link</button>`:''}
    ${id&&(o.status==='aprovado'||o.status==='rascunho')?`<button class="btn btn-a btn-sm" onclick="imprimirOrcamento('${id}')">🖨️ Imprimir</button>`:''}
    <button class="btn btn-p btn-sm" onclick="salvarOrcamento('${id||''}')">Salvar</button>`,'xl')
   recalcOrc()
@@ -1688,6 +1901,13 @@ function updateBadges(){
 
 let _cfgReady=null
 document.addEventListener('DOMContentLoaded',()=>{
+  const sigToken=new URLSearchParams(location.search).get('sig')
+  if(sigToken){
+    document.getElementById('loginOv').style.display='none'
+    document.getElementById('sigPage').style.display='block'
+    _loadSigPage(sigToken)
+    return
+  }
   if(sessionStorage.getItem('at_ok')){
     document.getElementById('loginOv').style.display='none'
     document.getElementById('app').style.display='flex'
