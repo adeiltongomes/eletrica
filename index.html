@@ -1027,6 +1027,22 @@ function filtrarProd(q){
   if(b)b.innerHTML=renderProdRows(list)
 }
 
+function _prodLabel(p){
+  const parts=[]
+  if(p.botoes)parts.push(`${p.botoes} bot${parseInt(p.botoes)>1?'ões':'ão'}`)
+  if(p.cor)parts.push(p.cor)
+  if(p.tipo)parts.push(p.tipo)
+  if(p.voltagem)parts.push(p.voltagem)
+  if(p.corrente)parts.push(p.corrente+'A')
+  if(p.potencia)parts.push(p.potencia+'W')
+  if(p.marca)parts.push(p.marca)
+  if(p.bitola)parts.push(p.bitola)
+  if(p.polos)parts.push(p.polos+' polos')
+  if(p.wifi)parts.push('Wi-Fi')
+  if(p.temTomada)parts.push('c/ tomada')
+  return parts.length?` — ${parts.join(', ')}`:''
+}
+
 function getAttrTags(p){
   const tags=[]
   if(p.cor)tags.push(`<span class="atag atag-b">${p.cor}</span>`)
@@ -1344,7 +1360,7 @@ function renderOrcItens(){
       <div><label>Produto / Serviço</label>
         <select onchange="orcSetProd(${i},this.value)" style="font-size:12px">
           <option value="_custom">✏️ Personalizado</option>
-          ${prods.map(p=>`<option value="${p.id}" ${it.prodId===p.id?'selected':''}>${catIco(p.cat)} ${p.nome}</option>`).join('')}
+          ${prods.map(p=>`<option value="${p.id}" ${it.prodId===p.id?'selected':''}>${catIco(p.cat)} ${p.nome}${_prodLabel(p)}</option>`).join('')}
         </select>
         ${it.prodId==='_custom'?`<input id="orcItemNome${i}" placeholder="Nome do item" value="${it.nome||''}" style="margin-top:5px;font-size:12px" oninput="_orcItens[${i}].nome=this.value">`:
         `<div style="font-size:11px;color:var(--txt3);margin-top:3px">${getAttrTags(it)}</div>`}
