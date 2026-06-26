@@ -1918,8 +1918,15 @@ async function imprimirDocAssinado(token){
   }catch(e){toast('Erro ao carregar assinatura: '+e.message,'warn')}
 }
 
-function imprimirOrcamento(id,sigData=null){
+async function imprimirOrcamento(id,sigData=null){
   const o=(DB.get(S.ORC)||[]).find(x=>x.id===id);if(!o)return
+  if(!sigData&&o.sigToken){
+    try{
+      if(!_fdb){if(!firebase.apps.length)firebase.initializeApp(_AT_FB);_fdb=firebase.firestore();_fdb.settings({experimentalForceLongPolling:true,merge:true})}
+      const snap=await _fdb.collection('sigs').doc(o.sigToken).get()
+      if(snap.exists&&snap.data().signed)sigData=snap.data()
+    }catch(e){console.warn('sig fetch:',e)}
+  }
   const cli=(DB.get(S.CLI)||[]).find(x=>x.id===o.cliId)||{}
   const prods=DB.get(S.PRO)||[]
   const e=getEmpresa()
