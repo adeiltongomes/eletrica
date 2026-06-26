@@ -687,12 +687,18 @@ function _sigJaAssinou(sig){
     </div>
     ${dt?`<div style="font-size:12px;color:#6B7A94;margin-bottom:${sig.signedImg?'12px':'28px'}">em ${dt}</div>`:'<div style="margin-bottom:28px"></div>'}
     ${sig.signedImg?`<div style="background:#0A0D14;border:1px solid #2E3850;border-radius:10px;padding:10px;margin-bottom:20px;display:inline-block"><img src="${sig.signedImg}" style="max-width:280px;height:auto;display:block"></div>`:'<div style="margin-bottom:8px"></div>'}
-    <div style="background:#1A1F2E;border:1px solid #252D40;border-radius:14px;padding:16px 20px;margin-bottom:20px;text-align:left">
+    <div style="background:#1A1F2E;border:1px solid #252D40;border-radius:14px;padding:16px 20px;margin-bottom:16px;text-align:left">
       <div style="font-size:11px;color:#6B7A94;margin-bottom:3px">Orçamento</div>
       <div style="font-size:15px;font-weight:800;color:#E8EDF5">ORC-${String(sig.orc?.num||0).padStart(4,'0')}</div>
       ${sig.cli?.nome?`<div style="font-size:12px;color:#B0BCCF;margin-top:4px">${sig.cli.nome}</div>`:''}
       <div style="font-size:18px;font-weight:800;color:#FFB300;margin-top:8px">${fmtR(sig.orc?.totalF||0)}</div>
     </div>
+    ${sig.signedIp||sig.signedDevice?`<div style="background:#0F1420;border:1px solid #1E2535;border-radius:12px;padding:14px 16px;margin-bottom:20px;text-align:left">
+      <div style="font-size:10px;font-weight:700;color:#6B7A94;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">🔒 Registro de Assinatura</div>
+      ${sig.signedIp?`<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px"><span style="font-size:11px;color:#6B7A94;min-width:70px">IP</span><span style="font-size:12px;color:#90CAF9;font-family:monospace">${sig.signedIp}</span></div>`:''}
+      ${sig.signedDevice?`<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:6px"><span style="font-size:11px;color:#6B7A94;min-width:70px">Dispositivo</span><span style="font-size:12px;color:#B0BCCF">${sig.signedDevice}</span></div>`:''}
+      ${dt?`<div style="display:flex;gap:8px;align-items:center"><span style="font-size:11px;color:#6B7A94;min-width:70px">Data/Hora</span><span style="font-size:12px;color:#B0BCCF">${dt}</span></div>`:''}
+    </div>`:`<div style="margin-bottom:20px"></div>`}
     ${waMsg?`<div style="font-size:12px;color:#6B7A94;margin-bottom:10px">Tem dúvidas? Entre em contato:</div>
     <a href="${waMsg}" target="_blank" style="display:inline-flex;align-items:center;gap:9px;padding:14px 24px;background:#25D366;color:#fff;border-radius:12px;font-weight:700;text-decoration:none;font-size:14px">
       💬 Chamar no WhatsApp
@@ -824,6 +830,25 @@ function _sigClearCanvas(){
   _sigDrawn=false
 }
 
+function _parseUA(ua){
+  if(!ua)return'Dispositivo desconhecido'
+  let browser='Navegador'
+  if(/Edg\/(\d+)/.test(ua))browser='Edge '+ua.match(/Edg\/(\d+)/)[1]
+  else if(/OPR\/(\d+)/.test(ua))browser='Opera '+ua.match(/OPR\/(\d+)/)[1]
+  else if(/Chrome\/(\d+)/.test(ua))browser='Chrome '+ua.match(/Chrome\/(\d+)/)[1]
+  else if(/Firefox\/(\d+)/.test(ua))browser='Firefox '+ua.match(/Firefox\/(\d+)/)[1]
+  else if(/Safari\//.test(ua))browser='Safari'
+  let os='SO desconhecido'
+  if(/iPhone/.test(ua))os='iPhone'
+  else if(/iPad/.test(ua))os='iPad'
+  else if(/Android/.test(ua))os='Android'+((/Android ([\d.]+)/.test(ua))?' '+ua.match(/Android ([\d.]+)/)[1]:'')
+  else if(/Windows NT 10/.test(ua))os='Windows 10/11'
+  else if(/Windows NT/.test(ua))os='Windows'
+  else if(/Mac OS X/.test(ua))os='macOS'
+  else if(/Linux/.test(ua))os='Linux'
+  return browser+' · '+os
+}
+
 async function _assinarOrcamento(token){
   if(!_sigDrawn){
     const c=document.getElementById('sigCanvas')
@@ -833,9 +858,14 @@ async function _assinarOrcamento(token){
   const c=document.getElementById('sigCanvas')
   const imgData=c?c.toDataURL('image/png'):null
   const btn=document.querySelector('#sigContent button[onclick*="_assinarOrcamento"]')
-  if(btn){btn.disabled=true;btn.textContent='Assinando...'}
+  if(btn){btn.disabled=true;btn.textContent='Coletando informações...'}
+  let signedIp='—'
+  try{const r=await fetch('https://api.ipify.org?format=json');const j=await r.json();signedIp=j.ip||'—'}catch{}
+  const signedDevice=_parseUA(navigator.userAgent)
+  const signedUA=navigator.userAgent||''
+  if(btn)btn.textContent='Assinando...'
   try{
-    await _fdb.collection('sigs').doc(token).update({signed:true,signedAt:Date.now(),signedImg:imgData,signedNome:null})
+    await _fdb.collection('sigs').doc(token).update({signed:true,signedAt:Date.now(),signedImg:imgData,signedNome:null,signedIp,signedDevice,signedUA})
     const snap=await _fdb.collection('sigs').doc(token).get()
     const sigData=snap.data()
     // Atualiza status do orçamento para "aprovado" no banco central
@@ -2181,6 +2211,7 @@ async function imprimirOrcamento(id,sigData=null){
   <div style="background:#F1F8E9;border:1px solid #A5D6A7;border-radius:8px;padding:12px 16px;margin-bottom:12px;font-size:11px">
     <strong style="color:#2E7D32">✅ Documento aprovado com assinatura digital</strong>
     <span style="color:#555;margin-left:10px">${sigData.signedAt?'em '+new Date(sigData.signedAt).toLocaleString('pt-BR'):''}</span>
+    ${sigData.signedIp||sigData.signedDevice?`<div style="margin-top:6px;color:#555;font-size:10px">${sigData.signedIp?'IP: '+sigData.signedIp:''}${sigData.signedIp&&sigData.signedDevice?' · ':''}${sigData.signedDevice||''}</div>`:''}
   </div>`:''}
   <div class="sigs">
     <div class="sig-box"><div class="sig-line">${e.fantasia||e.nome||'AccertTech'} — Responsável Técnico</div></div>
