@@ -1134,7 +1134,7 @@ function salvarOrcamento(id){
   const list=DB.get(S.ORC)||[]
   const valDias=parseInt(v('oVal'))||30
   const data={
-    id:id||genId(),num:id?list.find(x=>x.id===id)?.num||nextNum(list):nextNum(list),
+    id:id||genId(),num:id?list.find(x=>x.id===id)?.num||nextNum(list):Math.max(nextNum(list),192308),
     cliId,data:v('oData'),valDias,validade:addDays(v('oData'),valDias),
     endObra:v('oEnd'),resp:v('oResp'),desc,pgto:v('oPgto'),
     status:v('oStatus'),obs:v('oObs'),
