@@ -611,12 +611,29 @@ function _sigForm(sig,token){
   const e=sig.empresa||{}
   const wa=e.wa||e.fone||''
   const waMsg=wa?_waLink(wa)+'?text='+encodeURIComponent('Olá! Tenho dúvidas sobre o orçamento ORC-'+String(o.num||0).padStart(4,'0')+'.'):''
-  const itens=(o.itens||[]).map(it=>`
-    <tr>
-      <td style="padding:8px 10px;border-bottom:1px solid #252D40;color:#B0BCCF;font-size:13px">${it.nome||'—'}</td>
-      <td style="padding:8px 10px;border-bottom:1px solid #252D40;text-align:center;color:#6B7A94;font-size:12px;white-space:nowrap">${it.qtd||1} ${it.un||'un'}</td>
-      <td style="padding:8px 10px;border-bottom:1px solid #252D40;text-align:right;font-weight:700;color:#FFB300;font-size:13px;white-space:nowrap">${fmtR(it.sub||0)}</td>
-    </tr>`).join('')
+  // Agrupa itens por categoria igual ao impresso
+  const cats=[...new Set((o.itens||[]).map(it=>it.cat||'outro'))]
+  let itensHtml='',nGlobal=0
+  cats.forEach(cat=>{
+    const grupo=(o.itens||[]).filter(it=>(it.cat||'outro')===cat)
+    if(cats.length>1)itensHtml+=`<tr><td colspan="3" style="padding:5px 10px;background:#1E2535;color:#42A5F5;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px">${catIco(cat)} ${catNome(cat)}</td></tr>`
+    grupo.forEach(it=>{
+      nGlobal++
+      const attrs=getAttrTags(it)
+      const locais=(it.locais||[]).map(l=>`<span style="display:inline-block;padding:1px 6px;border-radius:10px;font-size:9px;background:rgba(76,175,80,.15);color:#66BB6A;margin:1px">${l}</span>`).join('')
+      itensHtml+=`<tr>
+        <td style="padding:8px 10px;border-bottom:1px solid #252D40;color:#B0BCCF;font-size:13px;vertical-align:top">
+          <span style="font-weight:600;color:#E8EDF5">${it.nome||'—'}</span>
+          ${attrs?`<div style="margin-top:5px">${attrs}</div>`:''}
+          ${locais?`<div style="margin-top:4px">${locais}</div>`:''}
+          ${it.obs?`<div style="font-size:11px;color:#6B7A94;margin-top:3px;font-style:italic">${it.obs}</div>`:''}
+        </td>
+        <td style="padding:8px 10px;border-bottom:1px solid #252D40;text-align:center;color:#6B7A94;font-size:12px;white-space:nowrap;vertical-align:top">${it.qtd||1} ${it.un||'un'}</td>
+        <td style="padding:8px 10px;border-bottom:1px solid #252D40;text-align:right;font-weight:700;color:#FFB300;font-size:13px;white-space:nowrap;vertical-align:top">${fmtR(it.sub||0)}</td>
+      </tr>`
+    })
+  })
+  const itens=itensHtml
   return`
   <div style="background:#13171F;border-radius:14px;padding:18px 20px;margin-bottom:12px">
     <div style="font-size:11px;font-weight:700;color:#2196F3;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px">⚡ ${e.fantasia||e.nome||'AccertTech'}</div>
@@ -706,7 +723,7 @@ async function gerarLinkAssinatura(orcId){
       orcId,
       empresa:{nome:emp.nome,fantasia:emp.fantasia,fone:emp.fone,wa:emp.wa||''},
       orc:{num:o.num,data:o.data,validade:o.validade,endObra:o.endObra||'',pgto:o.pgto||'',obs:o.obs||'',totalF:o.totalF||0,sub:o.sub||0,desc:o.desc||0,
-        itens:(o.itens||[]).map(it=>({nome:it.nome,qtd:it.qtd,un:it.un,pu:it.pu,sub:it.sub}))},
+        itens:JSON.parse(JSON.stringify(o.itens||[]))},
       cli:{nome:cli.nome||'',fone:cli.fone||''},
       signed:false,signedAt:null,signedNome:null,createdAt:Date.now()
     }
@@ -966,7 +983,7 @@ function filtrarProd(q){
 function getAttrTags(p){
   const tags=[]
   if(p.cor)tags.push(`<span class="atag atag-b">${p.cor}</span>`)
-  if(p.botoes)tags.push(`<span class="atag atag-y">${p.botoes} botão${p.botoes>1?'ões':''}</span>`)
+  if(p.botoes)tags.push(`<span class="atag atag-y">${p.botoes} bot${parseInt(p.botoes)>1?'ões':'ão'}</span>`)
   if(p.temTomada)tags.push(`<span class="atag atag-g">c/ tomada</span>`)
   if(p.wifi)tags.push(`<span class="atag atag-b">Wi-Fi</span>`)
   if(p.bitola)tags.push(`<span class="atag atag-o">${p.bitola}mm²</span>`)
@@ -1813,7 +1830,7 @@ function imprimirOrcamento(id){
 function getAttrTagsForPrint(p){
   const tags=[]
   if(p.cor)tags.push(`<span class="atag">Cor: ${p.cor}</span>`)
-  if(p.botoes)tags.push(`<span class="atag">${p.botoes} botão${p.botoes>1?'ões':''}</span>`)
+  if(p.botoes)tags.push(`<span class="atag">${p.botoes} bot${parseInt(p.botoes)>1?'ões':'ão'}</span>`)
   if(p.temTomada)tags.push(`<span class="atag">c/ tomada</span>`)
   if(p.wifi)tags.push(`<span class="atag">Wi-Fi</span>`)
   if(p.bitola)tags.push(`<span class="atag">Bitola: ${p.bitola}mm²</span>`)
