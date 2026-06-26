@@ -571,6 +571,8 @@ async function _loadSigPage(token){
       return
     }
     const sig=snap.data()
+    const sigProdIds=(sig.orc?.itens||[]).map(it=>it.prodId).filter(id=>id&&id!=='_custom')
+    if(sigProdIds.length)await _loadProdImgs(sigProdIds)
     el.innerHTML=sig.signed?_sigJaAssinou(sig):_sigForm(sig,token)
     if(!sig.signed)_sigInitCanvas()
   }catch(e){
@@ -623,12 +625,18 @@ function _sigForm(sig,token){
       nGlobal++
       const attrs=getAttrTags(it)
       const locais=(it.locais||[]).map(l=>`<span style="display:inline-block;padding:1px 6px;border-radius:10px;font-size:9px;background:rgba(76,175,80,.15);color:#66BB6A;margin:1px">${l}</span>`).join('')
+      const _itImg=it.prodId&&it.prodId!=='_custom'?_imgCache[it.prodId]:null
       itensHtml+=`<tr>
         <td style="padding:8px 10px;border-bottom:1px solid #252D40;color:#B0BCCF;font-size:13px;vertical-align:top">
-          <span style="font-weight:600;color:#E8EDF5">${it.nome||'—'}</span>
-          ${attrs?`<div style="margin-top:5px">${attrs}</div>`:''}
-          ${locais?`<div style="margin-top:4px">${locais}</div>`:''}
-          ${it.obs?`<div style="font-size:11px;color:#6B7A94;margin-top:3px;font-style:italic">${it.obs}</div>`:''}
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            ${_itImg?`<img src="${_itImg}" style="width:50px;height:50px;object-fit:cover;border-radius:6px;flex-shrink:0;border:1px solid #252D40">`:``}
+            <div>
+              <span style="font-weight:600;color:#E8EDF5">${it.nome||'—'}</span>
+              ${attrs?`<div style="margin-top:5px">${attrs}</div>`:''}
+              ${locais?`<div style="margin-top:4px">${locais}</div>`:''}
+              ${it.obs?`<div style="font-size:11px;color:#6B7A94;margin-top:3px;font-style:italic">${it.obs}</div>`:''}
+            </div>
+          </div>
         </td>
         <td style="padding:8px 10px;border-bottom:1px solid #252D40;text-align:center;color:#6B7A94;font-size:12px;white-space:nowrap;vertical-align:top">${it.qtd||1} ${it.un||'un'}</td>
         <td style="padding:8px 10px;border-bottom:1px solid #252D40;text-align:right;font-weight:700;color:#FFB300;font-size:13px;white-space:nowrap;vertical-align:top">${fmtR(it.sub||0)}</td>
@@ -1028,10 +1036,9 @@ function excluirCliente(id){
 }
 
 // ── Produtos ──
-function renderProdutos(){
+async function renderProdutos(){
   const list=DB.get(S.PRO)||[]
   const cats=[...new Set(list.map(p=>p.cat))].sort()
-  const filtroId='filtroCat_'+Date.now()
   document.getElementById('content').innerHTML=`
   <div class="sh"><div><div class="stitle">Produtos e Serviços</div><div class="ssub">${list.length} cadastrado(s)</div></div>
     <button class="btn btn-p" onclick="editarProduto()">+ Novo</button></div>
@@ -1043,20 +1050,24 @@ function renderProdutos(){
     </select>
   </div>
   <div class="tbl-wrap"><table class="tbl" id="tblProd">
-    <thead><tr><th>Produto / Serviço</th><th>Categoria</th><th>Atributos</th><th>Un.</th><th>Preço Unit.</th><th></th></tr></thead>
+    <thead><tr><th></th><th>Produto / Serviço</th><th>Categoria</th><th>Atributos</th><th>Un.</th><th>Preço Unit.</th><th></th></tr></thead>
     <tbody id="tblProdBody">${renderProdRows(list)}</tbody>
   </table></div>`
+  await _loadProdImgs(list.filter(p=>p.img).map(p=>p.id))
+  const body=document.getElementById('tblProdBody')
+  if(body)body.innerHTML=renderProdRows(list)
 }
 
 function renderProdRows(list){
   return list.length?list.map(p=>`<tr onclick="editarProduto('${p.id}')">
+    <td style="width:44px;padding:6px 4px 6px 10px">${_imgThumb(p.id,36)}</td>
     <td><div style="font-weight:600;color:var(--txt)">${p.nome}</div>${p.desc?`<div style="font-size:11px;color:var(--txt3)">${p.desc}</div>`:''}</td>
     <td><span class="bdg bdg-b">${catIco(p.cat)} ${catNome(p.cat)}</span></td>
     <td style="max-width:200px">${getAttrTags(p)}</td>
     <td style="color:var(--txt3)">${p.un||'un'}</td>
     <td style="font-weight:700;color:var(--acc)">${fmtR(p.pu||0)}</td>
     <td onclick="event.stopPropagation()"><button class="btn btn-g btn-ico" onclick="excluirProduto('${p.id}')">🗑️</button></td>
-  </tr>`).join(''):'<tr><td colspan="6"><div class="empty"><div class="empty-ico">🔌</div><div class="empty-t">Nenhum produto cadastrado</div><button class="btn btn-p btn-sm" style="margin-top:10px" onclick="editarProduto()">Cadastrar primeiro</button></div></td></tr>'
+  </tr>`).join(''):'<tr><td colspan="7"><div class="empty"><div class="empty-ico">🔌</div><div class="empty-t">Nenhum produto cadastrado</div><button class="btn btn-p btn-sm" style="margin-top:10px" onclick="editarProduto()">Cadastrar primeiro</button></div></td></tr>'
 }
 
 function filtrarProd(q){
@@ -1082,6 +1093,53 @@ function _prodLabel(p){
   if(p.wifi)parts.push('Wi-Fi')
   if(p.temTomada)parts.push('c/ tomada')
   return parts.length?` — ${parts.join(', ')}`:''
+}
+
+// ── Imagens de produto ──
+const _imgCache={}
+let _prodImgData=null
+
+function _resizeImg(file,maxW=400,maxH=400,q=0.72){
+  return new Promise((res,rej)=>{
+    const r=new FileReader()
+    r.onload=e=>{
+      const img=new Image()
+      img.onload=()=>{
+        const sc=Math.min(maxW/img.width,maxH/img.height,1)
+        const c=document.createElement('canvas')
+        c.width=Math.round(img.width*sc);c.height=Math.round(img.height*sc)
+        c.getContext('2d').drawImage(img,0,0,c.width,c.height)
+        res(c.toDataURL('image/jpeg',q))
+      }
+      img.onerror=rej;img.src=e.target.result
+    }
+    r.onerror=rej;r.readAsDataURL(file)
+  })
+}
+
+async function _loadProdImgs(prodIds){
+  if(!prodIds?.length||!_fdb)return
+  const toLoad=[...new Set(prodIds)].filter(id=>id&&id!=='_custom'&&!(id in _imgCache))
+  if(!toLoad.length)return
+  await Promise.all(toLoad.map(async id=>{
+    try{const doc=await _fdb.collection('prod_imgs').doc(id).get();_imgCache[id]=doc.exists?doc.data().img||null:null}
+    catch{_imgCache[id]=null}
+  }))
+}
+
+function _previewProdImg(input){
+  const file=input.files[0];if(!file)return
+  _resizeImg(file).then(data=>{
+    _prodImgData=data
+    const el=document.getElementById('pImgPreview')
+    if(el)el.innerHTML=`<img src="${data}" style="width:100%;height:100%;object-fit:cover;border-radius:6px">`
+  }).catch(()=>toast('Erro ao processar imagem','warn'))
+}
+
+function _imgThumb(prodId,size=40){
+  const src=_imgCache[prodId]
+  return src?`<img src="${src}" style="width:${size}px;height:${size}px;object-fit:cover;border-radius:5px;flex-shrink:0" loading="lazy">`
+    :`<div style="width:${size}px;height:${size}px;border-radius:5px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:${size<50?12:18}px;flex-shrink:0;border:1px solid var(--b)">📦</div>`
 }
 
 function getAttrTags(p){
@@ -1198,6 +1256,8 @@ function editarProduto(id){
   const list=DB.get(S.PRO)||[]
   const p=id?list.find(x=>x.id===id)||{}:{}
   const catSel=p.cat||'inter_int'
+  _prodImgData=null
+  const imgAtual=id?_imgCache[id]:null
   openModal(id?'Editar Produto / Serviço':'Novo Produto / Serviço',`
   <div class="fr c2">
     <div class="fg"><label>Categoria *</label><select id="pCat" onchange="updateAttrFields()">
@@ -1213,9 +1273,36 @@ function editarProduto(id){
     <div class="fg"><label>Código / Ref.</label><input id="pCod" value="${p.cod||''}"></div>
   </div>
   <div class="fr"><div class="fg"><label>Descrição Detalhada</label><input id="pDesc" value="${p.desc||''}"></div></div>
+  <div class="fr">
+    <div class="fg"><label>📷 Foto do Produto</label>
+      <div style="display:flex;gap:12px;align-items:center;padding:10px;background:var(--card2);border:1px solid var(--b);border-radius:8px">
+        <div id="pImgPreview" style="width:72px;height:72px;border-radius:7px;overflow:hidden;border:1px solid var(--b);display:flex;align-items:center;justify-content:center;background:var(--card);flex-shrink:0">
+          ${imgAtual?`<img src="${imgAtual}" style="width:100%;height:100%;object-fit:cover">`:`<span style="font-size:28px">📦</span>`}
+        </div>
+        <div>
+          <input type="file" id="pImgFile" accept="image/*" style="display:none" onchange="_previewProdImg(this)">
+          <button type="button" class="btn btn-o btn-sm" onclick="document.getElementById('pImgFile').click()">📷 Selecionar foto</button>
+          <div style="font-size:11px;color:var(--txt3);margin-top:5px">JPG ou PNG · será redimensionada automaticamente</div>
+          ${p.img?`<button type="button" class="btn btn-g btn-sm" style="margin-top:6px" onclick="_marcarRemoverImg()">🗑️ Remover foto</button>`:''}
+        </div>
+      </div>
+    </div>
+  </div>
   <div id="attrArea">${attrFields(catSel,p)}</div>`,
   `<button class="btn btn-o btn-sm" onclick="closeModal()">Cancelar</button>
    <button class="btn btn-p btn-sm" onclick="salvarProduto('${id||''}')">Salvar</button>`,true)
+  if(id&&p.img&&!_imgCache[id]&&_fdb){
+    _fdb.collection('prod_imgs').doc(id).get().then(doc=>{
+      if(doc.exists){_imgCache[id]=doc.data().img;const el=document.getElementById('pImgPreview');if(el)el.innerHTML=`<img src="${_imgCache[id]}" style="width:100%;height:100%;object-fit:cover">`}
+    }).catch(()=>{})
+  }
+}
+
+let _removerImg=false
+function _marcarRemoverImg(){
+  _removerImg=true;_prodImgData=null
+  const el=document.getElementById('pImgPreview');if(el)el.innerHTML=`<span style="font-size:28px">📦</span>`
+  toast('Foto marcada para remover — clique Salvar para confirmar','ok',2500)
 }
 
 function updateAttrFields(){
@@ -1238,8 +1325,18 @@ function salvarProduto(id){
     'diametro','tipoEl','polos','tipoQD','embutir','tipoDisj','polo','sensibilidade',
     'tipoAuto','protocolo','compatibilidade','tipoServico','unServico']
   attrs.forEach(a=>{const el=document.getElementById('pa_'+a);if(el){const val=el.type==='checkbox'?el.checked:el.value;if(val!==''&&val!==false)data[a]=val}})
+  if(_prodImgData)data.img=true
+  if(_removerImg&&!_prodImgData)data.img=false
   if(id){const i=list.findIndex(x=>x.id===id);if(i>=0)list[i]=data;else list.push(data)}else list.push(data)
   DB.set(S.PRO,list);closeModal();toast('Produto salvo');renderProdutos()
+  // Salvar/remover imagem no Firestore assincronamente
+  const finalId=data.id
+  if(_prodImgData&&_fdb){
+    _fdb.collection('prod_imgs').doc(finalId).set({img:_prodImgData}).then(()=>{_imgCache[finalId]=_prodImgData}).catch(e=>console.warn('img save:',e))
+  }else if(_removerImg&&_fdb){
+    _fdb.collection('prod_imgs').doc(finalId).delete().then(()=>{_imgCache[finalId]=null}).catch(()=>{})
+  }
+  _prodImgData=null;_removerImg=false
 }
 
 function excluirProduto(id){
@@ -1939,6 +2036,9 @@ async function imprimirOrcamento(id,sigData=null){
   if(o.resp)infoCells.push({l:'Responsável Técnico',v:o.resp})
   if(o.pgto)infoCells.push({l:'Pagamento',v:o.pgto})
 
+  const prodIdsComImg=(o.itens||[]).filter(it=>it.prodId&&it.prodId!=='_custom'&&prods.find(p=>p.id===it.prodId)?.img).map(it=>it.prodId)
+  await _loadProdImgs(prodIdsComImg)
+
   const cats=[...new Set(o.itens.map(it=>it.cat||'outro'))]
   let rowsHtml='',numGlobal=0
   // Group by category
@@ -1949,11 +2049,12 @@ async function imprimirOrcamento(id,sigData=null){
       numGlobal++
       const prodAtual=it.prodId&&it.prodId!=='_custom'?prods.find(p=>p.id===it.prodId):null
       const nomeImpresso=prodAtual?prodAtual.nome:it.nome
+      const imgSrc=it.prodId&&it.prodId!=='_custom'?_imgCache[it.prodId]:null
       const attrs=getAttrTagsForPrint(it)
       const locais=(it.locais||[]).map(l=>`<span class="local-tag">${l}</span>`).join(' ')
       rowsHtml+=`<tr>
         <td class="num">${numGlobal}</td>
-        <td>${nomeImpresso||'—'}${attrs?`<br>${attrs}`:''}${locais?`<br>${locais}`:''}${it.obs?`<br><span class="obs-item">${it.obs}</span>`:''}</td>
+        <td><div style="display:flex;gap:8px;align-items:flex-start">${imgSrc?`<img src="${imgSrc}" style="width:52px;height:52px;object-fit:cover;border-radius:5px;flex-shrink:0;border:1px solid #e0e0e0">`:''}<div>${nomeImpresso||'—'}${attrs?`<br>${attrs}`:''}${locais?`<br>${locais}`:''}${it.obs?`<br><span class="obs-item">${it.obs}</span>`:''}</div></div></td>
         <td class="qtd">${it.qtd||1}</td>
         <td>${it.un||'un'}</td>
         <td class="pr">${fmtR(it.pu||0)}</td>
