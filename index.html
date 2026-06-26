@@ -155,7 +155,6 @@ textarea{resize:vertical;min-height:70px}
     <div id="loginInfo" style="font-size:12px;color:#aaa;min-height:18px;margin:4px 0;text-align:center"></div>
     <br>
     <button class="btn btn-p" onclick="doLogin()">⚡ Entrar</button>
-    <button class="btn" style="margin-top:8px;font-size:12px;background:transparent;border:1px solid #555;color:#aaa" onclick="debugFirebase()">🔍 Ver usuários do Firebase</button>
   </div>
 </div>
 
@@ -190,9 +189,7 @@ textarea{resize:vertical;min-height:70px}
         <div class="pg-title" id="pageTitle">Dashboard</div>
       </div>
       <div style="display:flex;align-items:center;gap:10px">
-        <button onclick="forceSyncAll()" id="syncBtn" style="font-size:11px;padding:4px 10px;background:var(--pri);color:#fff;border:none;border-radius:6px;cursor:pointer">⬆ Sync</button>
-        <button onclick="showFirebaseDiag()" style="font-size:11px;padding:4px 10px;background:#333;color:#fff;border:none;border-radius:6px;cursor:pointer">🔍 Diag</button>
-        <span id="syncBadge" style="font-size:18px;cursor:pointer;color:var(--txt4)" onclick="pullFromFirebase()">⬤</span>
+        <span id="syncBadge" style="font-size:18px;color:var(--txt4)" title="Status sync">⬤</span>
         <span style="font-size:11px;color:var(--txt3)" id="topEmp"></span>
       </div>
     </div>
@@ -234,90 +231,56 @@ const DB={
 
 // ── Firebase Sync ──
 const _AT_FB={
-  apiKey:'AIzaSyBq7kbt5t9KIR196u9mEeGn0g0BLkgAlCQ',
-  authDomain:'laberna-dulce.firebaseapp.com',
-  projectId:'laberna-dulce',
-  storageBucket:'laberna-dulce.firebasestorage.app',
-  messagingSenderId:'355799786526',
-  appId:'1:355799786526:web:3bf1f988bb0cda65ddfa0f'
+  apiKey:'AIzaSyAFrWRE4zAhWGmCYu3zMKlv1pVJJ9F_QoQ',
+  authDomain:'eletrica-91273.firebaseapp.com',
+  projectId:'eletrica-91273',
+  storageBucket:'eletrica-91273.firebasestorage.app',
+  messagingSenderId:'995557704840',
+  appId:'1:995557704840:web:dd44811c86ae5830478b3d'
 }
-// Sync via coleção 'assinaturas' (regras existentes) com prefixo 'ate_'
-// Busca por ID de documento — sem precisar de índice Firestore
-const _AT_PFX='ate_'
+const _FS_COL='at_sync'
 const _FS_KEYS={[S.CLI]:'cli',[S.PRO]:'pro',[S.ORC]:'orc',[S.OS]:'os',[S.FIN]:'fin',[S.EST]:'est',[S.EMP]:'emp',[S.CFG]:'cfg'}
 let _fdb=null,_syncEnabled=false
 
 function _fsSync(key,data){
   if(!_fdb||!_syncEnabled)return
   const k=_FS_KEYS[key];if(!k)return
-  const docId=_AT_PFX+k+'_'+Date.now()
-  _fdb.collection('assinaturas').doc(docId).set({
-    _ate:true,_key:key,data:JSON.stringify(data),ts:Date.now()
-  }).catch(e=>console.warn('sync:',e))
-}
-
-// Lê TODOS os docs da coleção e filtra pelo prefixo 'ate_' — sem índice necessário
-async function _fsGetAll(){
-  const snap=await _fdb.collection('assinaturas').get()
-  const latest={}
-  snap.docs.forEach(doc=>{
-    if(!doc.id.startsWith(_AT_PFX))return // ignora docs da Labernadulce
-    const d=doc.data()
-    if(!d._key)return
-    if(!latest[d._key]||d.ts>latest[d._key].ts)latest[d._key]=d
-  })
-  return latest
+  _fdb.collection(_FS_COL).doc(k).set({data:JSON.stringify(data),ts:Date.now()}).catch(e=>console.warn('sync:',e))
 }
 
 async function _fsLoad(){
-  if(!_fdb)return
-  try{
-    const latest=await _fsGetAll()
-    Object.entries(latest).forEach(([key,d])=>{if(d.data)localStorage.setItem(key,d.data)})
-  }catch(e){console.warn('fsLoad:',e)}
+  if(!_fdb)return false
+  const snap=await _fdb.collection(_FS_COL).get()
+  let hasData=false
+  snap.docs.forEach(doc=>{
+    const d=doc.data()
+    const lsKey=Object.entries(_FS_KEYS).find(([,v])=>v===doc.id)?.[0]
+    if(lsKey&&d.data){localStorage.setItem(lsKey,d.data);hasData=true}
+  })
+  return hasData
 }
 
 function _fsListen(){
   if(!_fdb)return
-  _fdb.collection('assinaturas').onSnapshot(snap=>{
+  _fdb.collection(_FS_COL).onSnapshot(snap=>{
     if(!_syncEnabled)return
-    const latest={}
     snap.docs.forEach(doc=>{
-      if(!doc.id.startsWith(_AT_PFX))return
       const d=doc.data()
-      if(!d._key)return
-      if(!latest[d._key]||d.ts>latest[d._key].ts)latest[d._key]=d
-    })
-    Object.entries(latest).forEach(([key,d])=>{
-      const incoming=d.data;if(!incoming)return
-      const current=localStorage.getItem(key)
-      if(incoming!==current){localStorage.setItem(key,incoming);_onRemoteUpdate(key)}
+      const lsKey=Object.entries(_FS_KEYS).find(([,v])=>v===doc.id)?.[0]
+      if(!lsKey||!d.data)return
+      if(d.data!==localStorage.getItem(lsKey)){localStorage.setItem(lsKey,d.data);_onRemoteUpdate(lsKey)}
     })
   },err=>console.warn('listener err:',err))
-  // Polling a cada 15s como backup (garante sync mesmo se listener falhar)
-  setInterval(async()=>{
-    if(!_syncEnabled||!_fdb)return
-    try{
-      const latest=await _fsGetAll()
-      let changed=false
-      Object.entries(latest).forEach(([key,d])=>{
-        if(!d.data)return
-        const cur=localStorage.getItem(key)
-        if(d.data!==cur){localStorage.setItem(key,d.data);changed=true}
-      })
-      if(changed){updateBadges();nav(_page)}
-    }catch(e){}
-  },15000)
-  // Atualiza ao voltar para a aba
   document.addEventListener('visibilitychange',async()=>{
     if(document.visibilityState!=='visible'||!_syncEnabled||!_fdb)return
     try{
-      const latest=await _fsGetAll()
+      const snap=await _fdb.collection(_FS_COL).get()
       let changed=false
-      Object.entries(latest).forEach(([key,d])=>{
-        if(!d.data)return
-        const cur=localStorage.getItem(key)
-        if(d.data!==cur){localStorage.setItem(key,d.data);changed=true}
+      snap.docs.forEach(doc=>{
+        const d=doc.data()
+        const lsKey=Object.entries(_FS_KEYS).find(([,v])=>v===doc.id)?.[0]
+        if(!lsKey||!d.data)return
+        if(d.data!==localStorage.getItem(lsKey)){localStorage.setItem(lsKey,d.data);changed=true}
       })
       if(changed){updateBadges();nav(_page);toast('🔄 Dados atualizados','info',2000)}
     }catch(e){}
@@ -349,17 +312,15 @@ async function _initFirebase(){
       _fdb.settings({experimentalForceLongPolling:true,merge:true})
     }
     _setSyncBadge('sync')
-    // 1. Sobe dados locais para Firebase (migração / garante que PC está no Firebase)
     _syncEnabled=true
-    await Promise.all(Object.keys(_FS_KEYS).map(async k=>{
-      const d=DB.get(k);if(d===null)return
-      const fk=_FS_KEYS[k]
-      const docId=_AT_PFX+fk+'_'+Date.now()+'_'+Math.random().toString(36).slice(2,6)
-      await _fdb.collection('assinaturas').doc(docId).set({_ate:true,_key:k,data:JSON.stringify(d),ts:Date.now()}).catch(e=>console.warn('upload:',e))
-    }))
-    // 2. Firebase é a fonte da verdade — baixa tudo
-    await _fsLoad()
-    // 3. Ouve mudanças em tempo real de outros dispositivos
+    // Verifica se Firebase tem dados; se não, sobe os dados locais
+    const hasRemoteData=await _fsLoad()
+    if(!hasRemoteData){
+      await Promise.all(Object.entries(_FS_KEYS).map(async([lsKey,fk])=>{
+        const d=DB.get(lsKey);if(d===null)return
+        await _fdb.collection(_FS_COL).doc(fk).set({data:JSON.stringify(d),ts:Date.now()}).catch(e=>console.warn('upload:',e))
+      }))
+    }
     _fsListen()
     _setSyncBadge('ok')
   }catch(e){console.warn('Firebase:',e);_setSyncBadge('offline')}
@@ -467,9 +428,7 @@ async function doLogin(){
     document.getElementById('app').style.display='flex'
     initApp()
   }else{
-    const users=_getUsers()
-    const userNames=users.map(x=>x.user).join(', ')
-    toast('Usuário inválido. Usuários: '+userNames,'warn',6000)
+    toast('Usuário ou senha incorretos','warn',4000)
     document.getElementById('loginPass').value=''
   }
 }
@@ -483,130 +442,11 @@ async function _preLoadCfg(){
     }catch(e){console.warn('fb init:',e);return}
   }
   try{
-    const latest=await _fsGetAll()
-    if(latest[S.CFG]&&latest[S.CFG].data){
-      localStorage.setItem(S.CFG,latest[S.CFG].data)
-      console.log('Config sincronizado do Firebase')
+    const doc=await _fdb.collection(_FS_COL).doc('cfg').get()
+    if(doc.exists&&doc.data().data){
+      localStorage.setItem(S.CFG,doc.data().data)
     }
   }catch(e){console.warn('preLoadCfg:',e)}
-}
-async function showFirebaseDiag(){
-  const div=document.createElement('div')
-  div.style.cssText='position:fixed;inset:0;background:#111;color:#eee;padding:16px;z-index:9999;overflow:auto;font-size:13px;font-family:monospace'
-  div.innerHTML='<b>🔍 Diagnóstico Firebase</b><br><br>Buscando...<br><button onclick="this.parentNode.remove()" style="margin-top:8px;padding:6px 14px;background:#555;color:#fff;border:none;border-radius:6px;cursor:pointer">Fechar</button>'
-  document.body.appendChild(div)
-  try{
-    if(!_fdb){
-      if(!firebase.apps.length)firebase.initializeApp(_AT_FB)
-      _fdb=firebase.firestore()
-      _fdb.settings({experimentalForceLongPolling:true,merge:true})
-    }
-    const snap=await _fdb.collection('assinaturas').get()
-    const total=snap.docs.length
-    const ate=snap.docs.filter(d=>d.id.startsWith('ate_'))
-    const latest={}
-    ate.forEach(doc=>{
-      const d=doc.data()
-      if(!d._key)return
-      if(!latest[d._key]||d.ts>latest[d._key].ts)latest[d._key]={...d,id:doc.id}
-    })
-    let html=`<b>🔍 Diagnóstico Firebase</b><br><br>`
-    html+=`Total docs na coleção: <b>${total}</b><br>`
-    html+=`Docs ate_* encontrados: <b>${ate.length}</b><br><br>`
-    if(Object.keys(latest).length===0){
-      html+=`<span style="color:#f66">⚠ Nenhum doc ate_* com _key encontrado!<br>O PC nunca sincronizou ou os writes estão sendo rejeitados.</span><br>`
-    }else{
-      html+=`<b>Chaves encontradas:</b><br>`
-      Object.entries(latest).forEach(([key,d])=>{
-        const val=d.data?JSON.parse(d.data):null
-        const count=Array.isArray(val)?val.length:(val?'obj':'null')
-        const ts=new Date(d.ts).toLocaleString('pt-BR')
-        html+=`• ${key}: <b>${count} itens</b> — ${ts}<br>`
-      })
-      html+=`<br><button onclick="applyFirebaseDiag()" style="padding:8px 18px;background:#1a7;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px">⬇ Aplicar dados ao app</button>`
-    }
-    html+=`<br><br><button onclick="this.parentNode.remove()" style="padding:6px 14px;background:#555;color:#fff;border:none;border-radius:6px;cursor:pointer">Fechar</button>`
-    div.innerHTML=html
-    window._diagLatest=latest
-  }catch(e){
-    div.innerHTML=`<b>🔍 Diagnóstico</b><br><br><span style="color:#f66">Erro: ${e.message}</span><br><br><button onclick="this.parentNode.remove()" style="padding:6px 14px;background:#555;color:#fff;border:none;border-radius:6px;cursor:pointer">Fechar</button>`
-  }
-}
-function applyFirebaseDiag(){
-  if(!window._diagLatest)return
-  let n=0
-  Object.entries(window._diagLatest).forEach(([key,d])=>{
-    if(d.data){localStorage.setItem(key,d.data);n++}
-  })
-  toast('✓ '+n+' chaves aplicadas','ok')
-  nav(_page);updateBadges()
-  document.querySelector('[style*="position:fixed;inset:0"]')?.remove()
-}
-async function pullFromFirebase(){
-  const badge=document.getElementById('syncBadge')
-  if(badge){badge.style.color='#fa0'}
-  try{
-    if(!_fdb){
-      if(!firebase.apps.length)firebase.initializeApp(_AT_FB)
-      _fdb=firebase.firestore()
-      _fdb.settings({experimentalForceLongPolling:true,merge:true})
-    }
-    const latest=await _fsGetAll()
-    let updated=0
-    Object.entries(latest).forEach(([key,d])=>{
-      if(!d.data)return
-      const cur=localStorage.getItem(key)
-      if(d.data!==cur){localStorage.setItem(key,d.data);updated++}
-    })
-    if(badge){badge.style.color='#4f4'}
-    if(updated>0){
-      toast('✓ '+updated+' item(s) atualizado(s) do Firebase','ok')
-      nav(_page)
-      updateBadges()
-    }else{
-      toast('Já está atualizado','info')
-    }
-  }catch(e){
-    if(badge){badge.style.color='#f44'}
-    toast('Erro ao buscar Firebase: '+e.message,'warn')
-  }
-}
-async function forceSyncAll(){
-  const btn=document.getElementById('syncBtn')
-  if(btn){btn.disabled=true;btn.textContent='⬆ Enviando...'}
-  try{
-    if(!_fdb){
-      if(!firebase.apps.length)firebase.initializeApp(_AT_FB)
-      _fdb=firebase.firestore()
-      _fdb.settings({experimentalForceLongPolling:true,merge:true})
-    }
-    _syncEnabled=true
-    await Promise.all(Object.keys(_FS_KEYS).map(async k=>{
-      const d=DB.get(k);if(d===null)return
-      const fk=_FS_KEYS[k]
-      const docId=_AT_PFX+fk+'_'+Date.now()+'_'+Math.random().toString(36).slice(2,6)
-      await _fdb.collection('assinaturas').doc(docId).set({_ate:true,_key:k,data:JSON.stringify(d),ts:Date.now()})
-    }))
-    toast('✓ Todos os dados enviados para o Firebase','ok')
-    if(btn){btn.disabled=false;btn.textContent='⬆ Sync'}
-  }catch(e){
-    toast('Erro ao sincronizar: '+e.message,'warn')
-    if(btn){btn.disabled=false;btn.textContent='⬆ Sync'}
-  }
-}
-async function debugFirebase(){
-  const el=document.getElementById('loginInfo')
-  el.textContent='Buscando no Firebase...'
-  try{
-    await _preLoadCfg()
-    const users=_getUsers()
-    const list=users.map(x=>x.user+'('+x.role+')').join(' | ')
-    el.style.color='#4f4'
-    el.textContent='Firebase OK. Usuários: '+list
-  }catch(e){
-    el.style.color='#f44'
-    el.textContent='Erro Firebase: '+e.message
-  }
 }
 function logout(){
   sessionStorage.removeItem('at_ok')
@@ -1708,23 +1548,11 @@ document.addEventListener('DOMContentLoaded',()=>{
     document.getElementById('app').style.display='flex'
     initApp()
   }else{
-    // Inicia busca do Firebase em background imediatamente
+    // Pré-carrega config do Firebase antes do login
     _cfgReady=_preLoadCfg().catch(e=>{console.warn('preload err:',e)})
     const el=document.getElementById('loginInfo')
-    if(el){el.textContent='🔄 Conectando ao Firebase...';el.style.color='#aaa'}
-    _cfgReady.then(()=>{
-      if(!el)return
-      const users=_getUsers()
-      if(users.length){
-        const admins=users.filter(x=>x.role==='admin')
-        const txt=admins.map(x=>x.user+'/'+x.pass).join(' | ')
-        el.textContent='✓ Admin(s): '+txt
-        el.style.color='#4f4'
-      }else{
-        el.textContent='⚠ Nenhum usuário encontrado'
-        el.style.color='#fa0'
-      }
-    })
+    if(el){el.textContent='🔄 Conectando...';el.style.color='#aaa'}
+    _cfgReady.then(()=>{if(el)el.textContent=''})
     document.getElementById('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()})
   }
 })
