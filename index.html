@@ -21,10 +21,10 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,sans-serif;background:#0F
 .main{flex:1;overflow-y:auto;display:flex;flex-direction:column;min-width:0}
 .topbar{background:var(--card);border-bottom:1px solid var(--b);padding:0 22px;height:54px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .content{padding:22px;flex:1}
-.sb-logo{padding:16px 14px 13px;border-bottom:1px solid var(--b);display:flex;align-items:center;gap:11px}
-.sb-logo-icon{flex-shrink:0;display:flex}
-.sb-logo-name{font-size:14px;font-weight:800;line-height:1.2;background:linear-gradient(135deg,#FFD966,#FF8C00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.sb-logo-sub{font-size:9px;color:var(--txt3);letter-spacing:2px;text-transform:uppercase;-webkit-text-fill-color:var(--txt3)}
+.sb-logo{padding:18px 16px 14px;border-bottom:1px solid var(--b);display:flex;align-items:center;gap:10px}
+.sb-logo-icon{font-size:24px;flex-shrink:0}
+.sb-logo-name{font-size:14px;font-weight:800;color:var(--txt);line-height:1.2}
+.sb-logo-sub{font-size:9px;color:var(--txt3);letter-spacing:1.5px;text-transform:uppercase}
 .sb-nav{padding:10px 6px;flex:1}
 .sb-sec{font-size:9px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:var(--txt4);padding:10px 10px 4px}
 .sb-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:var(--rs);cursor:pointer;color:var(--txt2);font-size:13px;font-weight:500;transition:all .15s;margin-bottom:1px;border:none;background:none;width:100%;text-align:left}
@@ -104,10 +104,10 @@ textarea{resize:vertical;min-height:70px}
 .ti-i{background:#0D47A1;border:1px solid #1565C0;color:#90CAF9}
 .ti-show{opacity:1;transform:translateX(0)}
 #loginOv{position:fixed;inset:0;background:#080A10;z-index:5000;display:flex;align-items:center;justify-content:center}
-.lbox{background:var(--card);border:1px solid var(--b2);border-radius:18px;padding:36px 40px;width:min(360px,90vw);text-align:center}
-.lbox-ico{display:flex;justify-content:center;margin-bottom:14px}
-.lbox-t{font-size:22px;font-weight:800;background:linear-gradient(135deg,#FFD966,#FF8C00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:3px}
-.lbox-s{font-size:10px;color:var(--txt3);letter-spacing:2px;text-transform:uppercase;margin-bottom:28px}
+.lbox{background:var(--card);border:1px solid var(--b2);border-radius:16px;padding:34px 38px;width:min(360px,90vw);text-align:center}
+.lbox-ico{font-size:36px;margin-bottom:6px}
+.lbox-t{font-size:19px;font-weight:800;color:var(--txt);margin-bottom:3px}
+.lbox-s{font-size:10px;color:var(--txt3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:26px}
 .lbox input{margin-bottom:10px}
 .lbox .btn-p{width:100%;justify-content:center;padding:11px}
 .atag{display:inline-flex;align-items:center;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700}
@@ -288,19 +288,7 @@ textarea{resize:vertical;min-height:70px}
 
 <div id="loginOv">
   <div class="lbox">
-    <div class="lbox-ico">
-      <svg width="62" height="62" viewBox="0 0 62 62" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="62" height="62" rx="17" fill="url(#lbg)"/>
-        <path d="M37 9L22 35h13L25 53l16-26H28L37 9Z" fill="white" fill-opacity=".95"/>
-        <ellipse cx="21" cy="16" rx="9" ry="6" fill="white" fill-opacity=".12" transform="rotate(-35 21 16)"/>
-        <defs>
-          <linearGradient id="lbg" x1="0" y1="0" x2="62" y2="62">
-            <stop offset="0%" stop-color="#FFCA28"/>
-            <stop offset="100%" stop-color="#FF6200"/>
-          </linearGradient>
-        </defs>
-      </svg>
-    </div>
+    <div class="lbox-ico">⚡</div>
     <div class="lbox-t">AccertTech</div>
     <div class="lbox-s">Orçamentos Elétrica</div>
     <input type="text" id="loginUser" placeholder="Usuário" autocomplete="username">
@@ -314,19 +302,7 @@ textarea{resize:vertical;min-height:70px}
 <div id="app" class="app" style="display:none">
   <nav class="sidebar" id="sidebar">
     <div class="sb-logo">
-      <div class="sb-logo-icon">
-        <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect width="36" height="36" rx="9" fill="url(#sbg)"/>
-          <path d="M21 5L13 21h7L15 31l9-15h-8L21 5Z" fill="white" fill-opacity=".95"/>
-          <ellipse cx="12" cy="10" rx="5" ry="3.5" fill="white" fill-opacity=".13" transform="rotate(-35 12 10)"/>
-          <defs>
-            <linearGradient id="sbg" x1="0" y1="0" x2="36" y2="36">
-              <stop offset="0%" stop-color="#FFCA28"/>
-              <stop offset="100%" stop-color="#FF6200"/>
-            </linearGradient>
-          </defs>
-        </svg>
-      </div>
+      <div class="sb-logo-icon">⚡</div>
       <div><div class="sb-logo-name">AccertTech</div><div class="sb-logo-sub">Elétrica</div></div>
     </div>
     <div class="sb-nav">
