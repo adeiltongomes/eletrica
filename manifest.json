@@ -1,0 +1,20 @@
+{
+  "name": "AccertTech Elétrica",
+  "short_name": "AccertTech",
+  "description": "Sistema de orçamentos para elétrica",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0F1117",
+  "theme_color": "#0F1117",
+  "orientation": "portrait",
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

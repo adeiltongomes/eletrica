@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <title>⚡ AccertTech — Orçamentos Elétrica</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon.svg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="AccertTech">
+<meta name="theme-color" content="#0F1117">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;font-family:'Segoe UI',system-ui,sans-serif;background:#0F1117;color:#E8EDF5;font-size:14px}
@@ -2556,6 +2562,11 @@ document.addEventListener('DOMContentLoaded',()=>{
     document.getElementById('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()})
   }
 })
+</script>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js').catch(()=>{})})
+}
 </script>
 </body>
 </html>
