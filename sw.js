@@ -26,3 +26,19 @@ self.addEventListener('fetch',e=>{
     }).catch(()=>caches.match(e.request))
   )
 })
+
+self.addEventListener('notificationclick',e=>{
+  e.notification.close()
+  e.waitUntil(
+    clients.matchAll({type:'window',includeUncontrolled:true}).then(cs=>{
+      for(const c of cs){
+        if(c.url.includes('eletrica')&&'focus' in c){
+          c.focus()
+          c.postMessage({type:'openChat'})
+          return
+        }
+      }
+      return clients.openWindow('./')
+    })
+  )
+})
