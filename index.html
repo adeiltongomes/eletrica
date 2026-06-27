@@ -43,6 +43,7 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,sans-serif;background:#0F
 .pg-title{font-size:16px;font-weight:700;color:var(--txt)}
 /* Chat */
 .chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 54px - 44px);margin:-22px}
+@media(max-width:720px){.chat-wrap{height:calc(100vh - 50px - 28px - 66px - env(safe-area-inset-bottom,0px));margin:-14px -12px}}
 .chat-msgs{flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:4px}
 .chat-empty{text-align:center;color:var(--txt4);padding:50px 20px;line-height:1.9;font-size:13px}
 .chat-day-sep{text-align:center;font-size:10px;color:var(--txt4);margin:12px 0;text-transform:capitalize;letter-spacing:.4px}
@@ -389,7 +390,7 @@ textarea{resize:vertical;min-height:70px}
   <button class="mn-item active" id="mn-dashboard" onclick="nav('dashboard')"><span class="mi">📊</span>Início</button>
   <button class="mn-item" id="mn-orcamentos" onclick="nav('orcamentos')"><span class="mi">📋</span>Orçamentos</button>
   <button class="mn-item" id="mn-os" onclick="nav('os')"><span class="mi">🔧</span>OS</button>
-  <button class="mn-item" id="mn-clientes" onclick="nav('clientes')"><span class="mi">👥</span>Clientes</button>
+  <button class="mn-item" id="mn-chat" onclick="nav('chat')" style="position:relative"><span class="mi">💬</span>Chat<span id="bdg-chat-mob" style="display:none;position:absolute;top:6px;right:14px;background:#f44336;color:#fff;border-radius:10px;font-size:9px;font-weight:700;padding:1px 5px;min-width:16px;text-align:center">0</span></button>
   <button class="mn-item" id="mn-mais" onclick="openMobMenu()"><span class="mi">☰</span>Mais</button>
 </nav>
 <div class="mob-menu" id="mobMenu">
@@ -2586,6 +2587,8 @@ function _markChatRead(){
 function updateChatBadge(){
   const b=document.getElementById('bdg-chat')
   if(b){b.style.display=_chatUnread?'':'none';b.textContent=_chatUnread}
+  const bm=document.getElementById('bdg-chat-mob')
+  if(bm){bm.style.display=_chatUnread?'':'none';bm.textContent=_chatUnread}
 }
 
 async function _chatNotify(msg){
