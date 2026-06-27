@@ -2532,13 +2532,15 @@ function renderChat(){
     const isMe=m.from===myUser
     const canDel=isMe||admin
     const time=d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})
-    html+=`<div class="chat-row ${isMe?'chat-row-me':'chat-row-them'}">
-      ${!isMe?`<div class="chat-sender">${_escHtml(m.fromNome||m.from)}</div>`:''}
-      <div style="display:flex;align-items:flex-end;gap:4px;${isMe?'flex-direction:row-reverse':''}">
+    const delBtn=canDel?`<button onclick="apagarMsgChat('${m.id}')" title="Apagar" style="background:none;border:none;cursor:pointer;color:var(--txt4);font-size:16px;padding:6px 8px;opacity:.7;flex-shrink:0;align-self:center;-webkit-tap-highlight-color:transparent">🗑️</button>`:''
+    html+=`<div style="display:flex;align-items:flex-end;gap:4px;justify-content:${isMe?'flex-end':'flex-start'}">
+      ${!isMe?delBtn:''}
+      <div class="chat-row ${isMe?'chat-row-me':'chat-row-them'}">
+        ${!isMe?`<div class="chat-sender">${_escHtml(m.fromNome||m.from)}</div>`:''}
         <div class="chat-bubble ${isMe?'chat-mine':'chat-theirs'}">${_escHtml(m.text)}</div>
-        ${canDel?`<button onclick="apagarMsgChat('${m.id}')" title="Apagar" style="background:none;border:none;cursor:pointer;color:var(--txt4);font-size:14px;padding:4px 6px;opacity:.65;flex-shrink:0;-webkit-tap-highlight-color:transparent" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.65">🗑️</button>`:''}
+        <div class="chat-time">${time}</div>
       </div>
-      <div class="chat-time">${time}</div>
+      ${isMe?delBtn:''}
     </div>`
   })
   document.getElementById('content').innerHTML=`
