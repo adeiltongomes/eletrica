@@ -2523,16 +2523,21 @@ function _escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
 
 function renderChat(){
   const myUser=currentUser().user
+  const admin=isAdmin()
   let html='',lastDay=''
   _chatMsgs.forEach(m=>{
     const d=new Date(m.ts)
     const day=d.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'})
     if(day!==lastDay){html+=`<div class="chat-day-sep">${day}</div>`;lastDay=day}
     const isMe=m.from===myUser
+    const canDel=isMe||admin
     const time=d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})
     html+=`<div class="chat-row ${isMe?'chat-row-me':'chat-row-them'}">
       ${!isMe?`<div class="chat-sender">${_escHtml(m.fromNome||m.from)}</div>`:''}
-      <div class="chat-bubble ${isMe?'chat-mine':'chat-theirs'}">${_escHtml(m.text)}</div>
+      <div style="display:flex;align-items:flex-end;gap:4px;${isMe?'flex-direction:row-reverse':''}">
+        <div class="chat-bubble ${isMe?'chat-mine':'chat-theirs'}">${_escHtml(m.text)}</div>
+        ${canDel?`<button onclick="apagarMsgChat('${m.id}')" title="Apagar" style="background:none;border:none;cursor:pointer;color:var(--txt4);font-size:13px;padding:2px 4px;opacity:.5;flex-shrink:0" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.5">🗑️</button>`:''}
+      </div>
       <div class="chat-time">${time}</div>
     </div>`
   })
@@ -2547,6 +2552,14 @@ function renderChat(){
   _requestNotifPerm()
   _markChatRead()
   setTimeout(()=>{const el=document.getElementById('chatMsgs');if(el)el.scrollTop=el.scrollHeight},60)
+}
+
+function apagarMsgChat(id){
+  confirmarModal('Apagar esta mensagem?',async()=>{
+    if(!_fdb)return
+    try{await _fdb.collection('at_chat').doc(id).delete()}
+    catch(e){toast('Erro ao apagar','warn')}
+  })
 }
 
 async function sendChatMsg(){
