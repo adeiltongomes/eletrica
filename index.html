@@ -42,8 +42,8 @@ html,body{height:100%;font-family:'Segoe UI',system-ui,sans-serif;background:#0F
 .sb-bot{padding:10px 6px;border-top:1px solid var(--b)}
 .pg-title{font-size:16px;font-weight:700;color:var(--txt)}
 /* Chat */
-.chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 54px - 44px);margin:-22px}
-@media(max-width:720px){.chat-wrap{height:calc(100vh - 50px - 28px - 66px - env(safe-area-inset-bottom,0px));margin:-14px -12px}}
+.chat-wrap{position:fixed;top:54px;left:var(--sw);right:0;bottom:0;display:flex;flex-direction:column;background:var(--bg);z-index:5}
+@media(max-width:720px){.chat-wrap{left:0;top:50px;bottom:calc(66px + env(safe-area-inset-bottom,0px))}}
 .chat-msgs{flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:4px}
 .chat-empty{text-align:center;color:var(--txt4);padding:50px 20px;line-height:1.9;font-size:13px}
 .chat-day-sep{text-align:center;font-size:10px;color:var(--txt4);margin:12px 0;text-transform:capitalize;letter-spacing:.4px}
