@@ -1,0 +1,2734 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>⚡ AccertTech — Orçamentos Elétrica</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon.svg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="AccertTech">
+<meta name="theme-color" content="#0F1117">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'Segoe UI',system-ui,sans-serif;background:#0F1117;color:#E8EDF5;font-size:14px}
+:root{
+  --bg:#0F1117;--sb:#13171F;--card:#1A1F2E;--card2:#1E2535;
+  --b:#252D40;--b2:#2E3850;--b3:#3A4660;
+  --pri:#2196F3;--prid:#1565C0;--pril:#42A5F5;
+  --acc:#FFB300;--suc:#4CAF50;--wrn:#FF9800;--dan:#F44336;
+  --txt:#E8EDF5;--txt2:#B0BCCF;--txt3:#6B7A94;--txt4:#3D4A62;
+  --r:10px;--rs:6px;--sh:0 4px 24px rgba(0,0,0,.4);--sw:220px
+}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--b2);border-radius:10px}
+.app{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:var(--sw);background:var(--sb);border-right:1px solid var(--b);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;transition:transform .2s}
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column;min-width:0}
+.topbar{background:var(--card);border-bottom:1px solid var(--b);padding:0 22px;height:54px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.content{padding:22px;flex:1}
+.sb-logo{padding:18px 16px 14px;border-bottom:1px solid var(--b);display:flex;align-items:center;gap:10px}
+.sb-logo-icon{font-size:24px;flex-shrink:0}
+.sb-logo-name{font-size:14px;font-weight:800;color:var(--txt);line-height:1.2}
+.sb-logo-sub{font-size:9px;color:var(--txt3);letter-spacing:1.5px;text-transform:uppercase}
+.sb-nav{padding:10px 6px;flex:1}
+.sb-sec{font-size:9px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:var(--txt4);padding:10px 10px 4px}
+.sb-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:var(--rs);cursor:pointer;color:var(--txt2);font-size:13px;font-weight:500;transition:all .15s;margin-bottom:1px;border:none;background:none;width:100%;text-align:left}
+.sb-item:hover{background:var(--card);color:var(--txt)}
+.sb-item.active{background:rgba(33,150,243,.15);color:var(--pri);font-weight:700}
+.sb-item .ico{font-size:15px;width:18px;text-align:center;flex-shrink:0}
+.sb-bdg{margin-left:auto;background:var(--pri);color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:10px;min-width:18px;text-align:center}
+.sb-bdg.red{background:var(--dan)}
+.sb-bot{padding:10px 6px;border-top:1px solid var(--b)}
+.pg-title{font-size:16px;font-weight:700;color:var(--txt)}
+/* Chat */
+.chat-wrap{position:fixed;top:54px;left:var(--sw);right:0;bottom:0;display:flex;flex-direction:column;background:var(--bg);z-index:5}
+@media(max-width:720px){.chat-wrap{left:0;top:50px;bottom:calc(66px + env(safe-area-inset-bottom,0px))}}
+.chat-msgs{flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:4px}
+.chat-empty{text-align:center;color:var(--txt4);padding:50px 20px;line-height:1.9;font-size:13px}
+.chat-day-sep{text-align:center;font-size:10px;color:var(--txt4);margin:12px 0;text-transform:capitalize;letter-spacing:.4px}
+.chat-row{display:flex;flex-direction:column;max-width:78%;margin-bottom:4px}
+.chat-row-me{align-self:flex-end;align-items:flex-end}
+.chat-row-them{align-self:flex-start;align-items:flex-start}
+.chat-sender{font-size:10px;color:var(--txt3);margin-bottom:2px;padding:0 5px}
+.chat-bubble{padding:9px 13px;border-radius:16px;font-size:13px;line-height:1.55;word-break:break-word;white-space:pre-wrap}
+.chat-mine{background:var(--pri);color:#fff;border-bottom-right-radius:4px}
+.chat-theirs{background:var(--card2);color:var(--txt);border:1px solid var(--b);border-bottom-left-radius:4px}
+.chat-time{font-size:10px;color:var(--txt4);margin-top:2px;padding:0 5px}
+.chat-bar{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--b);background:var(--card);flex-shrink:0}
+.chat-bar input{flex:1;margin:0}
+.menu-btn{display:none;background:none;border:none;color:var(--txt2);font-size:20px;cursor:pointer;padding:4px}
+.card{background:var(--card);border:1px solid var(--b);border-radius:var(--r);padding:18px}
+.card-sm{padding:14px 16px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.metric-ico{font-size:20px;margin-bottom:8px}
+.metric-val{font-size:24px;font-weight:800;color:var(--txt);line-height:1}
+.metric-lbl{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--txt3);margin-top:4px}
+.metric-sub{font-size:11px;color:var(--txt3);margin-top:3px}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{padding:9px 12px;background:var(--card2);color:var(--txt3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;text-align:left;border-bottom:1px solid var(--b);white-space:nowrap}
+.tbl td{padding:10px 12px;border-bottom:1px solid var(--b);color:var(--txt2);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:rgba(33,150,243,.04);cursor:pointer}
+.tbl-wrap{overflow-x:auto;border-radius:var(--r);border:1px solid var(--b)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 15px;border-radius:var(--rs);font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid transparent;transition:all .15s;font-family:inherit;line-height:1;white-space:nowrap}
+.btn-p{background:var(--pri);color:#fff;border-color:var(--pri)}.btn-p:hover{background:var(--prid)}
+.btn-o{background:transparent;color:var(--txt2);border-color:var(--b2)}.btn-o:hover{background:var(--card2);color:var(--txt)}
+.btn-s{background:var(--suc);color:#fff;border-color:var(--suc)}
+.btn-d{background:var(--dan);color:#fff;border-color:var(--dan)}
+.btn-w{background:var(--wrn);color:#1A1A1A;border-color:var(--wrn)}
+.btn-a{background:var(--acc);color:#1A1A1A;border-color:var(--acc)}
+.btn-g{background:transparent;color:var(--txt3);border-color:transparent;padding:6px 10px}.btn-g:hover{color:var(--txt);background:var(--card2)}
+.btn-sm{padding:5px 11px;font-size:12px}.btn-xs{padding:3px 8px;font-size:11px;border-radius:4px}
+.btn-ico{padding:7px;border-radius:var(--rs)}
+label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--txt3);margin-bottom:4px}
+input,select,textarea{width:100%;padding:9px 11px;background:#0A0D14;border:1.5px solid var(--b2);border-radius:var(--rs);color:var(--txt);font-size:13px;font-family:inherit;outline:none;transition:border .15s}
+input:focus,select:focus,textarea:focus{border-color:var(--pri)}
+input::placeholder,textarea::placeholder{color:var(--txt4)}
+select option{background:var(--card)}
+textarea{resize:vertical;min-height:70px}
+.fr{display:grid;gap:12px;margin-bottom:12px}.fr.c2{grid-template-columns:1fr 1fr}.fr.c3{grid-template-columns:1fr 1fr 1fr}.fr.c4{grid-template-columns:1fr 1fr 1fr 1fr}
+.fg{display:flex;flex-direction:column}
+.bdg{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase}
+.bdg-b{background:rgba(33,150,243,.15);color:#42A5F5}
+.bdg-g{background:rgba(76,175,80,.15);color:#66BB6A}
+.bdg-y{background:rgba(255,179,0,.15);color:var(--acc)}
+.bdg-r{background:rgba(244,67,54,.15);color:#EF5350}
+.bdg-gr{background:rgba(107,122,148,.15);color:#8A9BB5}
+.bdg-o{background:rgba(255,152,0,.15);color:#FFA726}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:1000;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:var(--card);border:1px solid var(--b2);border-radius:14px;width:min(680px,95vw);max-height:92vh;overflow-y:auto;overflow-x:hidden;box-shadow:var(--sh);animation:fu .2s ease;display:flex;flex-direction:column}
+.modal-w{width:min(860px,95vw)}.modal-xl{width:min(1050px,97vw)}
+.mhdr{padding:18px 20px 14px;border-bottom:1px solid var(--b);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--card);z-index:2;flex-shrink:0}
+.mtitle{font-size:15px;font-weight:700;color:var(--txt)}
+.mbody{padding:18px 20px;flex:1;overflow-y:auto;overflow-x:hidden;min-height:0}
+.mfoot{padding:12px 20px;border-top:1px solid var(--b);display:flex;gap:8px;justify-content:flex-end;position:sticky;bottom:0;background:var(--card);flex-shrink:0}
+@keyframes fu{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.chip{display:inline-flex;align-items:center;gap:3px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;background:var(--card2);border:1px solid var(--b);color:var(--txt3);cursor:pointer;transition:all .15s;user-select:none}
+.chip.sel{background:rgba(33,150,243,.18);border-color:var(--pri);color:var(--pril)}
+.chip:hover:not(.sel){border-color:var(--txt3);color:var(--txt2)}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.divider{height:1px;background:var(--b);margin:14px 0}
+.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.stitle{font-size:14px;font-weight:700;color:var(--txt)}
+.ssub{font-size:11px;color:var(--txt3);margin-top:1px}
+.empty{text-align:center;padding:50px 20px;color:var(--txt3)}
+.empty-ico{font-size:40px;margin-bottom:10px}
+.empty-t{font-size:14px;font-weight:600;color:var(--txt2);margin-bottom:5px}
+.empty-s{font-size:12px}
+#toast{position:fixed;bottom:22px;right:22px;z-index:9999;display:flex;flex-direction:column;gap:7px;pointer-events:none}
+.ti{padding:11px 16px;border-radius:9px;font-size:13px;font-weight:600;opacity:0;transform:translateX(18px);transition:all .3s;max-width:300px;display:flex;align-items:center;gap:7px}
+.ti-ok{background:#1B5E20;border:1px solid #2E7D32;color:#A5D6A7}
+.ti-w{background:#B71C1C;border:1px solid#C62828;color:#EF9A9A}
+.ti-i{background:#0D47A1;border:1px solid #1565C0;color:#90CAF9}
+.ti-show{opacity:1;transform:translateX(0)}
+#loginOv{position:fixed;inset:0;background:#080A10;z-index:5000;display:flex;align-items:center;justify-content:center}
+.lbox{background:var(--card);border:1px solid var(--b2);border-radius:16px;padding:34px 38px;width:min(360px,90vw);text-align:center}
+.lbox-ico{font-size:36px;margin-bottom:6px}
+.lbox-t{font-size:19px;font-weight:800;color:var(--txt);margin-bottom:3px}
+.lbox-s{font-size:10px;color:var(--txt3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:26px}
+.lbox input{margin-bottom:10px}
+.lbox .btn-p{width:100%;justify-content:center;padding:11px}
+.atag{display:inline-flex;align-items:center;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700}
+.atag-b{background:rgba(33,150,243,.12);color:var(--pril);border:1px solid rgba(33,150,243,.2)}
+.atag-y{background:rgba(255,179,0,.12);color:var(--acc);border:1px solid rgba(255,179,0,.2)}
+.atag-g{background:rgba(76,175,80,.12);color:#66BB6A;border:1px solid rgba(76,175,80,.2)}
+.atag-r{background:rgba(244,67,54,.12);color:#EF5350;border:1px solid rgba(244,67,54,.2)}
+.atag-o{background:rgba(255,152,0,.12);color:#FFA726;border:1px solid rgba(255,152,0,.2)}
+.orc-item{background:var(--card2);border:1px solid var(--b);border-radius:8px;padding:10px 12px;margin-bottom:8px}
+.orc-item-top{display:grid;grid-template-columns:1fr 70px 90px 90px 90px 80px 30px;gap:8px;align-items:center}
+.orc-item-bot{margin-top:8px;padding-top:8px;border-top:1px solid var(--b)}
+.tab-btns{display:flex;gap:4px;background:var(--card2);border:1px solid var(--b);border-radius:8px;padding:3px}
+.tab-btn{padding:7px 16px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:none;background:none;color:var(--txt3);font-family:inherit;transition:all .15s}
+.tab-btn.active{background:var(--card);color:var(--txt);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.info-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1px;background:var(--b);border:1px solid var(--b);border-radius:8px;overflow:hidden;margin-bottom:14px}
+.info-cell{background:var(--card2);padding:10px 14px}
+.info-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--txt3);margin-bottom:3px}
+.info-val{font-size:13px;font-weight:700;color:var(--txt)}
+.attr-block{background:var(--card2);border:1px solid var(--b);border-radius:8px;padding:14px;margin-bottom:12px}
+.attr-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--pri);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+@media(max-width:900px){.g4{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr}}
+
+/* ─────────── MOBILE ─────────── */
+@media(max-width:720px){
+  /* Layout base */
+  html,body{overflow-x:hidden;width:100%}
+  .app{overflow-x:hidden}
+  .sidebar{display:none!important}
+  .menu-btn{display:none!important}
+  .main{padding-bottom:calc(66px + env(safe-area-inset-bottom,0));width:100%;overflow-x:hidden}
+  .content{padding:14px 12px;width:100%;overflow-x:hidden}
+
+  /* Topbar */
+  .topbar{padding:0 14px;height:50px}
+  .pg-title{font-size:15px;font-weight:700}
+
+  /* Grids → coluna única */
+  .fr.c2,.fr.c3,.fr.c4{grid-template-columns:1fr}
+  .g3,.g4{grid-template-columns:1fr 1fr}
+  .g2{grid-template-columns:1fr 1fr}
+
+  /* Tabelas → esconder, usar cards */
+  .mob-tbl{display:none!important}
+  .mob-card{display:block!important}
+
+  /* Abas — maiores, mais visíveis */
+  .tab-btns{
+    overflow-x:auto;flex-wrap:nowrap;
+    -webkit-overflow-scrolling:touch;scrollbar-width:none;
+    background:var(--card2);border:1.5px solid var(--b2);border-radius:10px;
+    padding:4px;gap:3px;
+  }
+  .tab-btns::-webkit-scrollbar{display:none}
+  .tab-btn{
+    flex-shrink:0;padding:9px 16px;border-radius:7px;
+    font-size:13px;font-weight:600;color:var(--txt2);
+    white-space:nowrap;
+  }
+  .tab-btn.active{
+    background:var(--pri);color:#fff;
+    box-shadow:0 2px 8px rgba(33,150,243,.4);
+  }
+
+  /* Inputs — font-size 16 evita zoom no iOS */
+  input,select{padding:12px 13px;font-size:16px}
+  textarea{font-size:15px;padding:11px 13px}
+  label{font-size:12px;margin-bottom:5px}
+
+  /* Botões */
+  .btn{padding:11px 16px;font-size:14px}
+  .btn-sm{padding:10px 15px;font-size:13px}
+  .btn-xs{padding:6px 11px;font-size:12px}
+  .btn-ico{padding:9px}
+
+  /* Modal — sheet de baixo, fixo e sem overflow */
+  .modal-bg{align-items:flex-end;backdrop-filter:none}
+  .modal,.modal-w,.modal-xl{
+    width:100vw!important;max-width:100vw!important;
+    border-radius:18px 18px 0 0;max-height:92vh;
+    margin:0;animation:su .22s ease;
+    overflow-x:hidden!important;
+  }
+  .mhdr{border-radius:18px 18px 0 0;padding:14px 16px 12px;position:sticky;top:0}
+  .mbody{padding:12px 14px;overflow-x:hidden}
+  .mfoot{padding:10px 14px;gap:6px;flex-wrap:wrap}
+  .mfoot .btn{flex:1;justify-content:center;min-width:0}
+  /* Todo conteúdo dentro do modal cabe na largura */
+  .mbody *{max-width:100%;box-sizing:border-box}
+  .mbody input,.mbody select,.mbody textarea{width:100%}
+  /* Remove min-width de elementos que causam overflow */
+  .mbody .fr{gap:8px;margin-bottom:8px}
+  .chips{gap:4px}
+  .chip{padding:5px 9px;font-size:12px}
+  /* Itens do orçamento no modal */
+  .orc-item{padding:8px 10px}
+  .orc-item-bot .chips{gap:3px}
+  /* Seção novo cliente inline */
+  #novoCliInline .fr.c2{grid-template-columns:1fr}
+  /* Resumo total */
+  #orcItensArea{overflow-x:hidden}
+
+  /* Itens do orçamento — reordenar */
+  .orc-item-top{display:flex!important;flex-wrap:wrap;gap:8px;align-items:flex-start}
+  .orc-item-top>div:nth-child(1){order:1;flex:1 1 calc(100% - 50px);min-width:0}
+  .orc-item-top>div:nth-child(7){order:2;flex:0 0 38px;align-self:flex-start;padding-top:18px}
+  .orc-item-top>div:nth-child(2){order:3;flex:0 0 70px}
+  .orc-item-top>div:nth-child(3){order:4;flex:0 0 64px}
+  .orc-item-top>div:nth-child(4){order:5;flex:1 1 100px}
+  .orc-item-top>div:nth-child(5){order:7;flex:1 1 90px}
+  .orc-item-top>div:nth-child(6){order:6;flex:1 1 90px}
+
+  /* Toast — no topo em mobile */
+  #toast{top:14px;bottom:auto;right:12px;left:12px}
+  .ti{max-width:100%;font-size:14px}
+}
+@keyframes su{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+/* ── Mobile bottom navigation ── */
+.mob-nav{
+  display:none;position:fixed;bottom:0;left:0;right:0;z-index:500;
+  background:var(--sb);border-top:1.5px solid var(--b2);
+  height:calc(60px + env(safe-area-inset-bottom,0));
+  padding-bottom:env(safe-area-inset-bottom,0);
+  align-items:stretch;
+}
+@media(max-width:720px){.mob-nav{display:flex}}
+.mn-item{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;color:var(--txt3);cursor:pointer;font-size:10px;font-weight:700;
+  letter-spacing:.2px;border:none;background:none;
+  padding:8px 2px 6px;height:100%;
+  -webkit-tap-highlight-color:transparent;
+  transition:color .15s,background .15s;
+  border-top:2.5px solid transparent;
+}
+.mn-item.active{color:var(--pri);border-top-color:var(--pri);background:rgba(33,150,243,.07)}
+.mn-item .mi{font-size:22px;line-height:1}
+
+/* ── More menu (mobile) ── */
+.mob-menu{display:none;position:fixed;inset:0;z-index:600;align-items:flex-end}
+.mob-menu.open{display:flex}
+.mob-menu-bg{position:absolute;inset:0;background:rgba(0,0,0,.6)}
+.mob-menu-box{
+  position:relative;width:100%;background:var(--sb);border-radius:18px 18px 0 0;
+  padding:8px 12px calc(72px + env(safe-area-inset-bottom,0));
+  border-top:1.5px solid var(--b2);z-index:1;
+}
+.mob-menu-handle{width:40px;height:4px;background:var(--b2);border-radius:2px;margin:8px auto 14px;display:block}
+.mm-item{
+  display:flex;align-items:center;gap:14px;padding:15px 12px;border-radius:10px;
+  color:var(--txt2);font-size:15px;font-weight:500;cursor:pointer;
+  border:none;background:none;width:100%;text-align:left;
+  -webkit-tap-highlight-color:transparent;
+}
+.mm-item:active{background:var(--card2)}
+.mm-item .ico{font-size:20px;width:26px;text-align:center;flex-shrink:0}
+
+/* ── Mobile card list ── */
+.mob-card{display:none}
+.mc-item{
+  background:var(--card);border:1px solid var(--b);border-radius:12px;
+  padding:14px 15px;margin-bottom:10px;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  transition:border-color .12s,background .12s;
+}
+.mc-item:active{background:var(--card2);border-color:var(--b2)}
+.mc-r1{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+.mc-r2{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.mc-id{font-weight:800;font-size:13px;color:var(--pri);flex-shrink:0}
+.mc-idy{color:var(--acc)}
+.mc-name{font-weight:600;color:var(--txt);font-size:15px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mc-val{font-weight:800;color:var(--acc);font-size:15px;flex-shrink:0;margin-left:4px}
+.mc-sub{font-size:12px;color:var(--txt3);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mc-acts{display:flex;gap:5px;flex-shrink:0}
+@media print{.no-print,.mob-nav,.mob-menu{display:none!important}body{background:#fff;color:#000}}
+</style>
+</head>
+<body>
+
+<div id="loginOv">
+  <div class="lbox">
+    <div class="lbox-ico">⚡</div>
+    <div class="lbox-t">AccertTech</div>
+    <div class="lbox-s">Orçamentos Elétrica</div>
+    <input type="text" id="loginUser" placeholder="Usuário" autocomplete="username">
+    <input type="password" id="loginPass" placeholder="Senha" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    <div id="loginInfo" style="font-size:12px;color:#aaa;min-height:18px;margin:4px 0;text-align:center"></div>
+    <br>
+    <button class="btn btn-p" onclick="doLogin()">⚡ Entrar</button>
+  </div>
+</div>
+
+<div id="app" class="app" style="display:none">
+  <nav class="sidebar" id="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-icon">⚡</div>
+      <div><div class="sb-logo-name">AccertTech</div><div class="sb-logo-sub">Elétrica</div></div>
+    </div>
+    <div class="sb-nav">
+      <div class="sb-sec">Principal</div>
+      <button class="sb-item active" id="sb-dashboard" onclick="nav('dashboard')"><span class="ico">📊</span>Dashboard</button>
+      <button class="sb-item" id="sb-orcamentos" onclick="nav('orcamentos')"><span class="ico">📋</span>Orçamentos<span class="sb-bdg" id="bdg-orc" style="display:none">0</span></button>
+      <button class="sb-item" id="sb-os" onclick="nav('os')"><span class="ico">🔧</span>Ordens de Serviço<span class="sb-bdg red" id="bdg-os" style="display:none">0</span></button>
+      <button class="sb-item" id="sb-chat" onclick="nav('chat')"><span class="ico">💬</span>Chat<span class="sb-bdg red" id="bdg-chat" style="display:none">0</span></button>
+      <div class="sb-sec">Cadastros</div>
+      <button class="sb-item" id="sb-clientes" onclick="nav('clientes')"><span class="ico">👥</span>Clientes</button>
+      <button class="sb-item" id="sb-produtos" onclick="nav('produtos')"><span class="ico">🔌</span>Produtos / Serviços</button>
+      <button class="sb-item" id="sb-estoque" onclick="nav('estoque')"><span class="ico">📦</span>Estoque</button>
+      <div class="sb-sec">Financeiro</div>
+      <button class="sb-item" id="sb-financeiro" onclick="nav('financeiro')"><span class="ico">💰</span>Financeiro</button>
+      <div class="sb-sec">Sistema</div>
+      <button class="sb-item" id="sb-config" onclick="nav('config')"><span class="ico">⚙️</span>Configurações</button>
+    </div>
+    <div class="sb-bot">
+      <button class="sb-item" onclick="logout()"><span class="ico">🚪</span>Sair</button>
+    </div>
+  </nav>
+  <div class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+        <div class="pg-title" id="pageTitle">Dashboard</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span id="syncBadge" style="font-size:18px;color:var(--txt4)" title="Status sync">⬤</span>
+        <span style="font-size:11px;color:var(--txt3)" id="topEmp"></span>
+      </div>
+    </div>
+    <div class="content" id="content"></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal" id="modal">
+    <div class="mhdr">
+      <div class="mtitle" id="modalTitle"></div>
+      <button class="btn btn-g btn-ico" onclick="closeModal()">✕</button>
+    </div>
+    <div class="mbody" id="modalBody"></div>
+    <div class="mfoot" id="modalFoot"></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="cfmBg">
+  <div class="modal" style="width:min(400px,90vw)">
+    <div class="mhdr"><div class="mtitle">Confirmar</div><button class="btn btn-g btn-ico" onclick="document.getElementById('cfmBg').classList.remove('open')">✕</button></div>
+    <div class="mbody" id="cfmBody" style="font-size:14px;line-height:1.6;color:var(--txt2)"></div>
+    <div class="mfoot"><button class="btn btn-o btn-sm" onclick="document.getElementById('cfmBg').classList.remove('open')">Cancelar</button><button class="btn btn-d btn-sm" id="cfmOk">Confirmar</button></div>
+  </div>
+</div>
+
+<div id="sigPage" style="display:none;min-height:100vh;background:#0F1117;padding:20px 16px;font-family:'Segoe UI',system-ui,sans-serif">
+  <div id="sigContent" style="max-width:560px;margin:0 auto;padding-bottom:40px"></div>
+</div>
+<div id="toast"></div>
+<div id="sideOverlay" style="display:none;position:fixed;inset:0;z-index:199;background:rgba(0,0,0,.5)" onclick="toggleSidebar()"></div>
+
+<nav class="mob-nav" id="mobNav">
+  <button class="mn-item active" id="mn-dashboard" onclick="nav('dashboard')"><span class="mi">📊</span>Início</button>
+  <button class="mn-item" id="mn-orcamentos" onclick="nav('orcamentos')"><span class="mi">📋</span>Orçamentos</button>
+  <button class="mn-item" id="mn-os" onclick="nav('os')"><span class="mi">🔧</span>OS</button>
+  <button class="mn-item" id="mn-chat" onclick="nav('chat')" style="position:relative"><span class="mi">💬</span>Chat<span id="bdg-chat-mob" style="display:none;position:absolute;top:6px;right:14px;background:#f44336;color:#fff;border-radius:10px;font-size:9px;font-weight:700;padding:1px 5px;min-width:16px;text-align:center">0</span></button>
+  <button class="mn-item" id="mn-mais" onclick="openMobMenu()"><span class="mi">☰</span>Mais</button>
+</nav>
+<div class="mob-menu" id="mobMenu">
+  <div class="mob-menu-bg" onclick="closeMobMenu()"></div>
+  <div class="mob-menu-box">
+    <span class="mob-menu-handle"></span>
+    <button class="mm-item" onclick="nav('produtos');closeMobMenu()"><span class="ico">🔌</span>Produtos / Serviços</button>
+    <button class="mm-item" onclick="nav('estoque');closeMobMenu()"><span class="ico">📦</span>Estoque</button>
+    <button class="mm-item" onclick="nav('financeiro');closeMobMenu()"><span class="ico">💰</span>Financeiro</button>
+    <button class="mm-item" onclick="nav('config');closeMobMenu()"><span class="ico">⚙️</span>Configurações</button>
+    <div style="height:1px;background:var(--b);margin:6px 0"></div>
+    <button class="mm-item" onclick="logout()"><span class="ico">🚪</span>Sair</button>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script>
+// ── Storage ──
+const S={EMP:'at_emp',CLI:'at_cli',PRO:'at_pro',ORC:'at_orc',OS:'at_os',FIN:'at_fin',EST:'at_est',CFG:'at_cfg'}
+const DB={
+  get:k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch{return null}},
+  set:(k,v)=>{localStorage.setItem(k,JSON.stringify(v));_fsSync(k,v)}
+}
+
+// ── Firebase Sync ──
+const _AT_FB={
+  apiKey:'AIzaSyAFrWRE4zAhWGmCYu3zMKlv1pVJJ9F_QoQ',
+  authDomain:'eletrica-91273.firebaseapp.com',
+  projectId:'eletrica-91273',
+  storageBucket:'eletrica-91273.firebasestorage.app',
+  messagingSenderId:'995557704840',
+  appId:'1:995557704840:web:dd44811c86ae5830478b3d'
+}
+const _FS_COL='at_sync'
+const _FS_KEYS={[S.CLI]:'cli',[S.PRO]:'pro',[S.ORC]:'orc',[S.OS]:'os',[S.FIN]:'fin',[S.EST]:'est',[S.EMP]:'emp',[S.CFG]:'cfg'}
+let _fdb=null,_syncEnabled=false
+
+function _fsSync(key,data){
+  if(!_fdb||!_syncEnabled)return
+  const k=_FS_KEYS[key];if(!k)return
+  _fdb.collection(_FS_COL).doc(k).set({data:JSON.stringify(data),ts:Date.now()}).catch(e=>console.warn('sync:',e))
+}
+
+async function _fsLoad(){
+  if(!_fdb)return false
+  const snap=await _fdb.collection(_FS_COL).get()
+  let hasData=false
+  snap.docs.forEach(doc=>{
+    const d=doc.data()
+    const lsKey=Object.entries(_FS_KEYS).find(([,v])=>v===doc.id)?.[0]
+    if(lsKey&&d.data){localStorage.setItem(lsKey,d.data);hasData=true}
+  })
+  return hasData
+}
+
+function _fsListen(){
+  if(!_fdb)return
+  _fdb.collection(_FS_COL).onSnapshot(snap=>{
+    if(!_syncEnabled)return
+    snap.docs.forEach(doc=>{
+      const d=doc.data()
+      const lsKey=Object.entries(_FS_KEYS).find(([,v])=>v===doc.id)?.[0]
+      if(!lsKey||!d.data)return
+      if(d.data!==localStorage.getItem(lsKey)){localStorage.setItem(lsKey,d.data);_onRemoteUpdate(lsKey)}
+    })
+  },err=>console.warn('listener err:',err))
+  document.addEventListener('visibilitychange',async()=>{
+    if(document.visibilityState!=='visible'||!_syncEnabled||!_fdb)return
+    try{
+      const snap=await _fdb.collection(_FS_COL).get()
+      let changed=false
+      snap.docs.forEach(doc=>{
+        const d=doc.data()
+        const lsKey=Object.entries(_FS_KEYS).find(([,v])=>v===doc.id)?.[0]
+        if(!lsKey||!d.data)return
+        if(d.data!==localStorage.getItem(lsKey)){localStorage.setItem(lsKey,d.data);changed=true}
+      })
+      if(changed){updateBadges();nav(_page);toast('🔄 Dados atualizados','info',2000)}
+    }catch(e){}
+  })
+}
+
+function _onRemoteUpdate(key){
+  _setSyncBadge('ok')
+  updateBadges()
+  const pageMap={[S.CLI]:'clientes',[S.PRO]:'produtos',[S.ORC]:'orcamentos',[S.OS]:'os',[S.FIN]:'financeiro',[S.EST]:'estoque',[S.EMP]:'config'}
+  const p=pageMap[key]
+  if(p&&_page===p){const renders={clientes:renderClientes,produtos:renderProdutos,orcamentos:renderOrcamentos,os:renderOS,financeiro:renderFinanceiro,estoque:renderEstoque,config:renderConfig};if(renders[p])renders[p]()}
+  if(_page==='dashboard')renderDashboard()
+  if(!document.getElementById('modalBg').classList.contains('open'))toast('🔄 Dados atualizados de outro dispositivo','info',2500)
+}
+
+function _setSyncBadge(state){
+  const el=document.getElementById('syncBadge');if(!el)return
+  if(state==='ok'){el.style.color='var(--suc)';el.title='Sincronizado'}
+  else if(state==='sync'){el.style.color='var(--acc)';el.title='Sincronizando...'}
+  else{el.style.color='var(--txt4)';el.title='Sem conexão — dados locais'}
+}
+
+async function _initFirebase(){
+  try{
+    if(!_fdb){
+      if(!firebase.apps.length)firebase.initializeApp(_AT_FB)
+      _fdb=firebase.firestore()
+      _fdb.settings({experimentalForceLongPolling:true,merge:true})
+    }
+    _setSyncBadge('sync')
+    _syncEnabled=true
+    // Verifica se Firebase tem dados; se não, sobe os dados locais
+    const hasRemoteData=await _fsLoad()
+    if(!hasRemoteData){
+      await Promise.all(Object.entries(_FS_KEYS).map(async([lsKey,fk])=>{
+        const d=DB.get(lsKey);if(d===null)return
+        await _fdb.collection(_FS_COL).doc(fk).set({data:JSON.stringify(d),ts:Date.now()}).catch(e=>console.warn('upload:',e))
+      }))
+    }
+    _fsListen()
+    _setSyncBadge('ok')
+  }catch(e){console.warn('Firebase:',e);_setSyncBadge('offline')}
+}
+
+// ── Constants ──
+const CATS=[
+  {id:'inter_int',nome:'Interruptor Inteligente',ico:'🔘'},
+  {id:'tomada',nome:'Tomada',ico:'🔌'},
+  {id:'led_spot',nome:'Spot LED',ico:'💡'},
+  {id:'led_amb',nome:'LED Ambiente',ico:'🌟'},
+  {id:'led_fita',nome:'Fita LED',ico:'〰️'},
+  {id:'cabo_fio',nome:'Cabo / Fio',ico:'🔗'},
+  {id:'eletroduto',nome:'Eletroduto / Conduíte',ico:'⬡'},
+  {id:'qd_eletrico',nome:'Quadro Elétrico',ico:'🗄️'},
+  {id:'disjuntor',nome:'Disjuntor / DR / DPS',ico:'⚡'},
+  {id:'automacao',nome:'Automação',ico:'📡'},
+  {id:'servico',nome:'Serviço / Mão de Obra',ico:'🔧'},
+  {id:'outro',nome:'Outros Materiais',ico:'📦'},
+]
+const LOCAIS=['Sala','Cozinha','Banheiro','Varanda','Quarto Casal','Quarto 1','Quarto 2','Suíte','Área de Serviço','Escritório','Garagem','Hall / Corredor','Fachada','Jardim','Sala de TV','Copa','Lavabo']
+const ST_ORC={rascunho:{l:'Rascunho',c:'bdg-gr'},enviado:{l:'Enviado',c:'bdg-b'},aprovado:{l:'Aprovado',c:'bdg-g'},recusado:{l:'Recusado',c:'bdg-r'},executado:{l:'Executado',c:'bdg-y'}}
+const ST_OS={aberta:{l:'Aberta',c:'bdg-b'},andamento:{l:'Em Andamento',c:'bdg-y'},concluida:{l:'Concluída',c:'bdg-g'},cancelada:{l:'Cancelada',c:'bdg-r'}}
+
+// ── Utils ──
+function genId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function fmt(v,d=2){return new Intl.NumberFormat('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d}).format(v||0)}
+function fmtR(v){return'R$ '+fmt(v)}
+function fmtDate(d){if(!d)return'';const p=d.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d}
+function today(){return new Date().toISOString().slice(0,10)}
+function addDays(d,n){const dt=new Date(d+'T12:00:00');dt.setDate(dt.getDate()+n);return dt.toISOString().slice(0,10)}
+function nextNum(list,field='num'){return(list||[]).reduce((a,x)=>Math.max(a,parseInt(x[field]||0)),0)+1}
+function catNome(id){return(CATS.find(c=>c.id===id)||{nome:id}).nome}
+function catIco(id){return(CATS.find(c=>c.id===id)||{ico:'📦'}).ico}
+function cliNome(id){const c=(DB.get(S.CLI)||[]).find(x=>x.id===id);return c?c.nome:'—'}
+function orcNumFmt(n){return'ORC-'+String(n||0).padStart(4,'0')}
+function osNumFmt(n){return'OS-'+String(n||0).padStart(4,'0')}
+function getEmpresa(){return DB.get(S.EMP)||{nome:'AccertTech',fantasia:'AccertTech',fone:'',email:'',resp:'',crea:''}}
+
+function toast(msg,type='ok',dur=3500){
+  const el=document.createElement('div')
+  el.className=`ti ti-${type==='ok'?'ok':type==='warn'?'w':'i'}`
+  el.innerHTML=(type==='ok'?'✓':type==='warn'?'✕':'ℹ')+' '+msg
+  document.getElementById('toast').appendChild(el)
+  setTimeout(()=>el.classList.add('ti-show'),10)
+  setTimeout(()=>{el.classList.remove('ti-show');setTimeout(()=>el.remove(),300)},dur)
+}
+
+function openModal(title,body,foot,wide){
+  document.getElementById('modalTitle').textContent=title
+  document.getElementById('modalBody').innerHTML=body
+  document.getElementById('modalFoot').innerHTML=foot||''
+  const m=document.getElementById('modal')
+  m.className='modal'+(wide==='xl'?' modal-xl':wide?(' modal-w'):'')
+  document.getElementById('modalBg').classList.add('open')
+  // Trava scroll do fundo para não dançar em mobile
+  const main=document.querySelector('.main')
+  if(main)main.style.overflow='hidden'
+  document.body.style.overflow='hidden'
+}
+function closeModal(){
+  document.getElementById('modalBg').classList.remove('open')
+  const main=document.querySelector('.main')
+  if(main)main.style.overflow=''
+  document.body.style.overflow=''
+}
+
+function confirmarModal(msg,fn,btnLbl='Confirmar',btnCls='btn-d'){
+  document.getElementById('cfmBody').innerHTML=msg
+  const btn=document.getElementById('cfmOk')
+  btn.className='btn '+btnCls+' btn-sm'
+  btn.textContent=btnLbl
+  btn.onclick=()=>{document.getElementById('cfmBg').classList.remove('open');fn()}
+  document.getElementById('cfmBg').classList.add('open')
+}
+
+function toggleSidebar(){
+  const sb=document.getElementById('sidebar')
+  const ov=document.getElementById('sideOverlay')
+  const open=sb.classList.toggle('mob-open')
+  ov.style.display=open?'block':'none'
+}
+function openMobMenu(){document.getElementById('mobMenu').classList.add('open')}
+function closeMobMenu(){document.getElementById('mobMenu').classList.remove('open')}
+
+// ── Auth / Sessão ──
+function _getUsers(){
+  const cfg=DB.get(S.CFG)||{}
+  // compatibilidade com formato antigo (só um user)
+  if(cfg.users)return cfg.users
+  return [{user:cfg.user||'admin',pass:cfg.pass||'1234',role:'admin',nome:'Admin'}]
+}
+function currentUser(){try{return JSON.parse(sessionStorage.getItem('at_session')||'{}')}catch{return{}}}
+function isAdmin(){return currentUser().role==='admin'}
+
+async function doLogin(){
+  const u=document.getElementById('loginUser').value.trim()
+  const p=document.getElementById('loginPass').value
+  const btn=document.querySelector('#loginOv .btn-p')
+  if(btn){btn.disabled=true;btn.textContent='Verificando...'}
+  // Tenta local primeiro (rápido)
+  let found=_getUsers().find(x=>x.user===u&&x.pass===p)
+  // Se não achou, aguarda o Firebase (já iniciado no DOMContentLoaded)
+  if(!found){
+    try{
+      if(btn)btn.textContent='Sincronizando...'
+      await (_cfgReady||_preLoadCfg())
+      found=_getUsers().find(x=>x.user===u&&x.pass===p)
+    }catch(e){console.warn('preload cfg:',e)}
+  }
+  if(btn){btn.disabled=false;btn.textContent='⚡ Entrar'}
+  if(found){
+    sessionStorage.setItem('at_ok','1')
+    sessionStorage.setItem('at_session',JSON.stringify(found))
+    document.getElementById('loginOv').style.display='none'
+    document.getElementById('app').style.display='flex'
+    initApp()
+  }else{
+    toast('Usuário ou senha incorretos','warn',4000)
+    document.getElementById('loginPass').value=''
+  }
+}
+
+async function _preLoadCfg(){
+  if(!_fdb){
+    try{
+      if(!firebase.apps.length)firebase.initializeApp(_AT_FB)
+      _fdb=firebase.firestore()
+      _fdb.settings({experimentalForceLongPolling:true,merge:true})
+    }catch(e){console.warn('fb init:',e);return}
+  }
+  try{
+    const doc=await _fdb.collection(_FS_COL).doc('cfg').get()
+    if(doc.exists&&doc.data().data){
+      localStorage.setItem(S.CFG,doc.data().data)
+    }
+  }catch(e){console.warn('preLoadCfg:',e)}
+}
+// ── Assinatura digital ──
+function _waLink(wa){
+  if(!wa)return''
+  const n=wa.replace(/\D/g,'')
+  if(!n)return''
+  const full=n.startsWith('55')&&n.length>=12?n:'55'+n
+  return'https://wa.me/'+full
+}
+
+async function _initFbPublic(){
+  if(_fdb)return
+  if(!firebase.apps.length)firebase.initializeApp(_AT_FB)
+  _fdb=firebase.firestore()
+  _fdb.settings({experimentalForceLongPolling:true,merge:true})
+}
+
+async function _loadSigPage(token){
+  const el=document.getElementById('sigContent')
+  el.innerHTML='<div style="text-align:center;padding:80px 20px;color:#6B7A94;font-size:14px">⏳ Carregando...</div>'
+  try{
+    await _initFbPublic()
+    const snap=await _fdb.collection('sigs').doc(token).get()
+    if(!snap.exists){
+      el.innerHTML=`<div style="text-align:center;padding:80px 20px">
+        <div style="font-size:48px;margin-bottom:16px">⚠️</div>
+        <div style="font-size:18px;font-weight:700;color:#E8EDF5;margin-bottom:8px">Link inválido</div>
+        <div style="font-size:13px;color:#6B7A94">Este link não existe ou foi removido.</div></div>`
+      return
+    }
+    const sigRaw=snap.data()
+    // Fetch current product catalog from Firestore to merge fresh attrs (cor, botoes, etc.)
+    let _prods=[]
+    try{const pd=await _fdb.collection('at_sync').doc('pro').get();if(pd.exists)_prods=JSON.parse(pd.data().data||'[]')}catch(e){console.warn('prod load:',e)}
+    const _mergeItemAttrs=itens=>(itens||[]).map(it=>{
+      const p=it.prodId&&it.prodId!=='_custom'?_prods.find(x=>x.id===it.prodId):null
+      if(!p)return{...it}
+      return{...it,...p,prodId:it.prodId,nome:p.nome,qtd:it.qtd,un:it.un,pu:it.pu,sub:it.sub,locais:it.locais,obs:it.obs,cat:it.cat}
+    })
+    const sig=sigRaw.orc?{...sigRaw,orc:{...sigRaw.orc,itens:_mergeItemAttrs(sigRaw.orc?.itens)}}:sigRaw
+    const sigProdIds=(sig.orc?.itens||[]).map(it=>it.prodId).filter(id=>id&&id!=='_custom')
+    if(sigProdIds.length)await _loadProdImgs(sigProdIds)
+    el.innerHTML=sig.signed?_sigJaAssinou(sig):_sigForm(sig,token)
+    if(!sig.signed)_sigInitCanvas()
+  }catch(e){
+    el.innerHTML=`<div style="text-align:center;padding:60px 20px;color:#EF5350">Erro ao carregar: ${e.message}</div>`
+  }
+}
+
+let _pubSig=null
+
+function _sigJaAssinou(sig){
+  _pubSig=sig
+  const e=sig.empresa||{}
+  const wa=sig.empresa?.wa||sig.empresa?.fone||''
+  const dt=sig.signedAt?new Date(sig.signedAt).toLocaleString('pt-BR'):''
+  const waMsg=wa?_waLink(wa)+'?text='+encodeURIComponent('Olá! Tenho dúvidas sobre meu orçamento.'):''
+  return`
+  <div style="text-align:center;padding:20px 0 28px">
+    <div style="font-size:11px;font-weight:700;color:#2196F3;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:20px">⚡ ${e.fantasia||e.nome||'AccertTech'}</div>
+    <div style="font-size:52px;margin-bottom:14px">✅</div>
+    <div style="font-size:20px;font-weight:800;color:#4CAF50;margin-bottom:8px">Orçamento aprovado!</div>
+    <div style="font-size:14px;color:#B0BCCF;margin-bottom:4px">
+      ${sig.signedNome?`Assinado por <strong style="color:#E8EDF5">${sig.signedNome}</strong>`:'Orçamento aprovado com assinatura digital'}
+    </div>
+    ${dt?`<div style="font-size:12px;color:#6B7A94;margin-bottom:${sig.signedImg?'12px':'28px'}">em ${dt}</div>`:'<div style="margin-bottom:28px"></div>'}
+    ${sig.signedImg?`<div style="background:#0A0D14;border:1px solid #2E3850;border-radius:10px;padding:10px;margin-bottom:20px;display:inline-block"><img src="${sig.signedImg}" style="max-width:280px;height:auto;display:block"></div>`:'<div style="margin-bottom:8px"></div>'}
+    <button onclick="_verDocAssinadoPub()" style="width:100%;padding:14px;background:#2196F3;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:14px">
+      📄 Ver orçamento assinado
+    </button>
+    <div style="background:#1A1F2E;border:1px solid #252D40;border-radius:14px;padding:16px 20px;margin-bottom:16px;text-align:left">
+      <div style="font-size:11px;color:#6B7A94;margin-bottom:3px">Orçamento</div>
+      <div style="font-size:15px;font-weight:800;color:#E8EDF5">ORC-${String(sig.orc?.num||0).padStart(4,'0')}</div>
+      ${sig.cli?.nome?`<div style="font-size:12px;color:#B0BCCF;margin-top:4px">${sig.cli.nome}</div>`:''}
+      <div style="font-size:18px;font-weight:800;color:#FFB300;margin-top:8px">${fmtR(sig.orc?.totalF||0)}</div>
+    </div>
+    ${sig.signedIp||sig.signedDevice?`<div style="background:#0F1420;border:1px solid #1E2535;border-radius:12px;padding:14px 16px;margin-bottom:20px;text-align:left">
+      <div style="font-size:10px;font-weight:700;color:#6B7A94;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">🔒 Registro de Assinatura</div>
+      ${sig.signedIp?`<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px"><span style="font-size:11px;color:#6B7A94;min-width:70px">IP</span><span style="font-size:12px;color:#90CAF9;font-family:monospace">${sig.signedIp}</span></div>`:''}
+      ${sig.signedDevice?`<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:6px"><span style="font-size:11px;color:#6B7A94;min-width:70px">Dispositivo</span><span style="font-size:12px;color:#B0BCCF">${sig.signedDevice}</span></div>`:''}
+      ${dt?`<div style="display:flex;gap:8px;align-items:center"><span style="font-size:11px;color:#6B7A94;min-width:70px">Data/Hora</span><span style="font-size:12px;color:#B0BCCF">${dt}</span></div>`:''}
+    </div>`:`<div style="margin-bottom:20px"></div>`}
+    ${waMsg?`<div style="font-size:12px;color:#6B7A94;margin-bottom:10px">Tem dúvidas? Entre em contato:</div>
+    <a href="${waMsg}" target="_blank" style="display:inline-flex;align-items:center;gap:9px;padding:14px 24px;background:#25D366;color:#fff;border-radius:12px;font-weight:700;text-decoration:none;font-size:14px">
+      💬 Chamar no WhatsApp
+    </a>`:''}
+  </div>`
+}
+
+function _verDocAssinadoPub(){
+  const sig=_pubSig;if(!sig)return
+  const o=sig.orc||{},cli=sig.cli||{},e=sig.empresa||{}
+  const dt=sig.signedAt?new Date(sig.signedAt).toLocaleString('pt-BR'):''
+  const cats=[...new Set((o.itens||[]).map(it=>it.cat||'outro'))]
+  let numG=0,rowsHtml=''
+  const CAT_ICO={inter_int:'🔘',tomada:'🔌',led_spot:'💡',led_amb:'🌟',led_fita:'〰️',cabo_fio:'🔗',qd:'⚡',disjuntor:'⚡',automacao:'🤖',servico:'🔧',outro:'📦'}
+  const CAT_NOM={inter_int:'Interruptor Inteligente',tomada:'Tomada',led_spot:'Spot LED',led_amb:'LED Ambiente',led_fita:'Fita LED',cabo_fio:'Cabo / Fio',qd:'Quadro de Distribuição',disjuntor:'Disjuntor',automacao:'Automação',servico:'Serviço',outro:'Outros'}
+  cats.forEach(cat=>{
+    if(cats.length>1)rowsHtml+=`<tr><td colspan="6" style="background:#EEF4FF;color:#1565C0;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;padding:6px 10px">${CAT_ICO[cat]||'📦'} ${CAT_NOM[cat]||cat}</td></tr>`
+    ;(o.itens||[]).filter(it=>(it.cat||'outro')===cat).forEach(it=>{
+      numG++
+      const imgSrc=it.prodId&&it.prodId!=='_custom'?_imgCache[it.prodId]:null
+      const attrTags=[]
+      if(it.cor)attrTags.push(`<span class="atag">Cor: ${it.cor}</span>`)
+      if(it.botoes)attrTags.push(`<span class="atag">${it.botoes} bot${parseInt(it.botoes)>1?'ões':'ão'}</span>`)
+      if(it.temTomada)attrTags.push(`<span class="atag">c/ tomada</span>`)
+      if(it.wifi)attrTags.push(`<span class="atag">Wi-Fi</span>`)
+      if(it.bitola)attrTags.push(`<span class="atag">Bitola: ${it.bitola}mm²</span>`)
+      if(it.potencia)attrTags.push(`<span class="atag">${it.potencia}</span>`)
+      if(it.tempCor)attrTags.push(`<span class="atag">${it.tempCor}</span>`)
+      const attrs=attrTags.join('')
+      const locais=(it.locais||[]).map(l=>`<span class="local-tag">${l}</span>`).join(' ')
+      rowsHtml+=`<tr>
+        <td class="num">${numG}</td>
+        <td><div style="display:flex;gap:8px;align-items:flex-start">${imgSrc?`<img src="${imgSrc}" style="width:48px;height:48px;object-fit:cover;border-radius:5px;flex-shrink:0;border:1px solid #e0e0e0">`:''}<div>${it.nome||'—'}${attrs?`<br>${attrs}`:''}${locais?`<br>${locais}`:''}${it.obs?`<br><span class="obs-item">${it.obs}</span>`:''}</div></div></td>
+        <td class="qtd">${it.qtd||1}</td><td>${it.un||'un'}</td>
+        <td class="pr">${fmtR(it.pu||0)}</td><td class="sub">${fmtR(it.sub||0)}</td>
+      </tr>`
+    })
+  })
+  const w=window.open('','_blank','width=900,height=700')
+  w.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>ORC-${String(o.num||0).padStart(4,'0')} — Documento Assinado</title><style>
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',Arial,sans-serif;background:#fff;color:#1A1A1A;font-size:12px;padding:20px}
+.hdr{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1565C0;padding-bottom:10px;margin-bottom:14px}
+.co{font-size:16px;font-weight:800;color:#1565C0}.sub{font-size:10px;color:#888;margin-top:2px}
+.doc-title .t{font-size:16px;font-weight:800;color:#1565C0;text-align:right;text-transform:uppercase}
+.doc-title .n{font-size:12px;color:#555;text-align:right;margin-top:2px}
+.info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:#F5F8FF;border:1px solid #D0DFFF;border-radius:6px;padding:10px;margin-bottom:12px}
+.ic{}.lbl{font-size:9px;font-weight:700;color:#1565C0;text-transform:uppercase;letter-spacing:.5px}.val{font-size:11px;color:#1A1A1A;margin-top:1px}.full{grid-column:1/-1}
+.sec{font-size:10px;font-weight:700;color:#1565C0;text-transform:uppercase;letter-spacing:1px;margin:10px 0 6px;border-bottom:1px solid #e0e0e0;padding-bottom:4px}
+table{width:100%;border-collapse:collapse;margin-bottom:12px}
+thead th{background:#1565C0;color:#fff;padding:6px 8px;font-size:10px;font-weight:700;text-transform:uppercase}
+.num{width:28px;text-align:center}.qtd{width:40px;text-align:center}.pr{width:80px;text-align:right}.sub{width:80px;text-align:right;font-weight:700}
+tbody tr:nth-child(even){background:#F5F8FF}
+tbody td{padding:7px 8px;border-bottom:1px solid #e8e8e8;vertical-align:middle;font-size:11px}
+.atag{display:inline-block;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:700;background:#EEF4FF;color:#1565C0;margin:1px}
+.local-tag{display:inline-block;padding:1px 5px;border-radius:3px;font-size:9px;background:#E8F5E9;color:#2E7D32;margin:1px}
+.obs-item{font-size:10px;color:#666;font-style:italic}
+.total-box{background:#1A2540;color:#fff;padding:10px 14px;border-radius:6px;display:flex;justify-content:flex-end;gap:24px;margin-bottom:12px;font-weight:700}
+.sigs{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px;padding-top:16px;border-top:1px solid #e0e0e0}
+.sig-box{text-align:center}.sig-line{border-top:1px solid #333;margin-top:40px;padding-top:6px;font-size:10px;color:#555}
+.footer{margin-top:16px;padding-top:10px;border-top:1px solid #e0e0e0;text-align:center;font-size:9px;color:#999}
+@media print{*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}}
+</style></head><body>
+<div class="hdr">
+  <div><div class="co">⚡ ${e.fantasia||e.nome||'AccertTech'}</div><div class="sub">Serviços Elétricos${e.crea?' · CREA: '+e.crea:''}</div></div>
+  <div class="doc-title"><div class="t">ORÇAMENTO</div><div class="n">Nº ORC-${String(o.num||0).padStart(4,'0')}</div></div>
+</div>
+<div class="info-grid">
+  ${o.data?`<div class="ic"><div class="lbl">Data</div><div class="val">${fmtDate(o.data)}</div></div>`:''}
+  ${o.validade?`<div class="ic"><div class="lbl">Válido até</div><div class="val">${fmtDate(o.validade)}</div></div>`:''}
+  ${o.dataInicio?`<div class="ic"><div class="lbl">Início do Serviço</div><div class="val">${fmtDate(o.dataInicio)}</div></div>`:''}
+  ${o.dataFim?`<div class="ic"><div class="lbl">Término do Serviço</div><div class="val">${fmtDate(o.dataFim)}</div></div>`:''}
+  ${cli.nome?`<div class="ic"><div class="lbl">Cliente</div><div class="val">${cli.nome}</div></div>`:''}
+  ${cli.fone?`<div class="ic"><div class="lbl">Telefone</div><div class="val">${cli.fone}</div></div>`:''}
+  ${o.endObra?`<div class="ic full"><div class="lbl">Endereço da Obra</div><div class="val">${o.endObra}</div></div>`:''}
+  ${e.nome?`<div class="ic"><div class="lbl">Responsável Técnico</div><div class="val">${e.nome}</div></div>`:''}
+  ${o.pgto?`<div class="ic"><div class="lbl">Pagamento</div><div class="val">${o.pgto}</div></div>`:''}
+</div>
+<div class="sec">Itens do Orçamento</div>
+<table><thead><tr><th class="num">#</th><th style="text-align:left">Descrição</th><th class="qtd">Qtd.</th><th>Un.</th><th class="pr">Preço Unit.</th><th class="sub">Subtotal</th></tr></thead>
+<tbody>${rowsHtml}</tbody></table>
+<div class="total-box">
+  <span>Subtotal: ${fmtR(o.sub||0)}</span>
+  ${o.desc?`<span style="color:#FF8A80">Desconto: -${fmtR(o.desc)}</span>`:''}
+  <span style="font-size:15px;color:#FFB300">TOTAL: ${fmtR(o.totalF||0)}</span>
+</div>
+${o.pgto?`<div style="margin-bottom:10px"><strong>Pagamento:</strong> ${o.pgto}</div>`:''}
+${o.obs?`<div style="background:#FFF8E1;border:1px solid #FFE082;border-radius:6px;padding:10px 14px;font-size:11px;margin-bottom:12px"><strong>Observações:</strong><br>${o.obs}</div>`:''}
+<div style="background:#F1F8E9;border:1px solid #A5D6A7;border-radius:8px;padding:12px 16px;margin-bottom:12px;font-size:11px">
+  <strong style="color:#2E7D32">✅ Documento aprovado com assinatura digital</strong>
+  ${dt?`<span style="color:#555;margin-left:10px">em ${dt}</span>`:''}
+  ${sig.signedIp||sig.signedDevice?`<div style="margin-top:6px;color:#555;font-size:10px">${sig.signedIp?'IP: '+sig.signedIp:''}${sig.signedIp&&sig.signedDevice?' · ':''}${sig.signedDevice||''}</div>`:''}
+</div>
+<div class="sigs">
+  <div class="sig-box"><div class="sig-line">${e.fantasia||e.nome||'AccertTech'} — Responsável Técnico</div></div>
+  <div class="sig-box">
+    ${sig.signedImg?`<img src="${sig.signedImg}" style="max-height:70px;max-width:220px;display:block;margin:0 auto 4px">`:''}`+`
+    <div class="sig-line">Cliente — ${cli.nome||'_____________________'}</div>
+  </div>
+</div>
+<div class="footer">ORC-${String(o.num||0).padStart(4,'0')} · ${e.fantasia||e.nome||'AccertTech'} · Documento gerado em ${new Date().toLocaleString('pt-BR')}</div>
+</body></html>`)
+  w.document.close();setTimeout(()=>w.print(),500)
+}
+
+function _sigForm(sig,token){
+  const o=sig.orc||{}
+  const cli=sig.cli||{}
+  const e=sig.empresa||{}
+  const wa=e.wa||e.fone||''
+  const waMsg=wa?_waLink(wa)+'?text='+encodeURIComponent('Olá! Tenho dúvidas sobre o orçamento ORC-'+String(o.num||0).padStart(4,'0')+'.'):''
+  // Agrupa itens por categoria igual ao impresso
+  const cats=[...new Set((o.itens||[]).map(it=>it.cat||'outro'))]
+  let itensHtml='',nGlobal=0
+  cats.forEach(cat=>{
+    const grupo=(o.itens||[]).filter(it=>(it.cat||'outro')===cat)
+    if(cats.length>1)itensHtml+=`<tr><td colspan="3" style="padding:5px 10px;background:#1E2535;color:#42A5F5;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px">${catIco(cat)} ${catNome(cat)}</td></tr>`
+    grupo.forEach(it=>{
+      nGlobal++
+      const attrs=getAttrTags(it)
+      const locais=(it.locais||[]).map(l=>`<span style="display:inline-block;padding:1px 6px;border-radius:10px;font-size:9px;background:rgba(76,175,80,.15);color:#66BB6A;margin:1px">${l}</span>`).join('')
+      const _itImg=it.prodId&&it.prodId!=='_custom'?_imgCache[it.prodId]:null
+      itensHtml+=`<tr>
+        <td style="padding:8px 10px;border-bottom:1px solid #252D40;color:#B0BCCF;font-size:13px;vertical-align:top">
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            ${_itImg?`<img src="${_itImg}" style="width:50px;height:50px;object-fit:cover;border-radius:6px;flex-shrink:0;border:1px solid #252D40">`:``}
+            <div>
+              <span style="font-weight:600;color:#E8EDF5">${it.nome||'—'}</span>
+              ${attrs?`<div style="margin-top:5px">${attrs}</div>`:''}
+              ${locais?`<div style="margin-top:4px">${locais}</div>`:''}
+              ${it.obs?`<div style="font-size:11px;color:#6B7A94;margin-top:3px;font-style:italic">${it.obs}</div>`:''}
+            </div>
+          </div>
+        </td>
+        <td style="padding:8px 10px;border-bottom:1px solid #252D40;text-align:center;color:#6B7A94;font-size:12px;white-space:nowrap;vertical-align:top">${it.qtd||1} ${it.un||'un'}</td>
+        <td style="padding:8px 10px;border-bottom:1px solid #252D40;text-align:right;font-weight:700;color:#FFB300;font-size:13px;white-space:nowrap;vertical-align:top">${fmtR(it.sub||0)}</td>
+      </tr>`
+    })
+  })
+  const itens=itensHtml
+  return`
+  <div style="background:#13171F;border-radius:14px;padding:18px 20px;margin-bottom:12px">
+    <div style="font-size:11px;font-weight:700;color:#2196F3;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px">⚡ ${e.fantasia||e.nome||'AccertTech'}</div>
+    <div style="font-size:24px;font-weight:900;color:#E8EDF5;margin-bottom:2px">ORC-${String(o.num||0).padStart(4,'0')}</div>
+    <div style="font-size:12px;color:#6B7A94">${fmtDate(o.data||'')}${o.validade?' · válido até '+fmtDate(o.validade):''}</div>
+    ${o.dataInicio||o.dataFim?`<div style="font-size:12px;color:#90CAF9;margin-top:4px">🗓️ Serviço: ${o.dataInicio?fmtDate(o.dataInicio):'?'}${o.dataFim?' → '+fmtDate(o.dataFim):''}</div>`:''}
+  </div>
+  <div style="background:#1A1F2E;border:1px solid #252D40;border-radius:12px;padding:14px 16px;margin-bottom:12px">
+    <div style="font-size:10px;font-weight:700;color:#6B7A94;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px">Cliente</div>
+    <div style="font-size:15px;font-weight:700;color:#E8EDF5">${cli.nome||'—'}</div>
+    ${o.endObra?`<div style="font-size:12px;color:#6B7A94;margin-top:3px">📍 ${o.endObra}</div>`:''}
+  </div>
+  ${itens?`<div style="background:#1A1F2E;border:1px solid #252D40;border-radius:12px;overflow:hidden;margin-bottom:12px">
+    <div style="font-size:10px;font-weight:700;color:#6B7A94;text-transform:uppercase;letter-spacing:1px;padding:12px 14px 6px">Itens do Orçamento</div>
+    <table style="width:100%;border-collapse:collapse">
+      <thead><tr>
+        <th style="padding:6px 10px;background:#1E2535;text-align:left;font-size:9px;color:#6B7A94;font-weight:700;text-transform:uppercase">Descrição</th>
+        <th style="padding:6px 10px;background:#1E2535;text-align:center;font-size:9px;color:#6B7A94;font-weight:700;text-transform:uppercase">Qtd</th>
+        <th style="padding:6px 10px;background:#1E2535;text-align:right;font-size:9px;color:#6B7A94;font-weight:700;text-transform:uppercase">Total</th>
+      </tr></thead>
+      <tbody>${itens}</tbody>
+    </table>
+  </div>`:''}
+  <div style="background:#1A2540;border-radius:12px;padding:14px 18px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center">
+    <div>
+      ${o.desc?`<div style="font-size:11px;color:#90CAF9">Desconto: -${fmtR(o.desc)}</div>`:''}
+      <div style="font-size:12px;color:#B0BCCF">TOTAL</div>
+    </div>
+    <div style="font-size:26px;font-weight:900;color:#FFB300">${fmtR(o.totalF||0)}</div>
+  </div>
+  ${o.pgto?`<div style="background:#1A1F2E;border:1px solid #252D40;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:13px;color:#B0BCCF"><strong style="color:#E8EDF5">Pagamento:</strong> ${o.pgto}</div>`:''}
+  ${o.obs?`<div style="background:#1A1F2E;border:1px solid #252D40;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:13px;color:#B0BCCF"><strong style="color:#E8EDF5">Observações:</strong><br>${o.obs}</div>`:''}
+  <div style="background:#1A1F2E;border:2px solid #2196F3;border-radius:14px;padding:18px;margin-bottom:16px">
+    <div style="font-size:14px;font-weight:700;color:#E8EDF5;margin-bottom:4px">Aprovar este orçamento</div>
+    <div style="font-size:12px;color:#6B7A94;margin-bottom:14px">Ao assinar, você confirma a aprovação e autoriza o início dos serviços.</div>
+    <div style="font-size:11px;color:#6B7A94;margin-bottom:6px">✍️ Assine abaixo com o dedo ou mouse:</div>
+    <canvas id="sigCanvas" width="600" height="160" style="width:100%;height:130px;display:block;border:2px solid #2E3850;border-radius:9px;background:#0A0D14;touch-action:none;cursor:crosshair"></canvas>
+    <button onclick="_sigClearCanvas()" style="margin-top:6px;padding:5px 14px;background:transparent;border:1px solid #2E3850;border-radius:6px;color:#6B7A94;font-size:12px;cursor:pointer;font-family:inherit">Limpar</button>
+    <button onclick="_assinarOrcamento('${token}')" style="width:100%;padding:15px;background:#4CAF50;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:.3px;margin-top:12px">
+      ✅ Confirmar e Assinar
+    </button>
+  </div>
+  ${waMsg?`<div style="text-align:center">
+    <div style="font-size:12px;color:#6B7A94;margin-bottom:10px">Tem dúvidas antes de assinar?</div>
+    <a href="${waMsg}" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:12px 22px;background:#25D366;color:#fff;border-radius:10px;font-weight:700;text-decoration:none;font-size:13px">
+      💬 Falar com ${e.fantasia||e.nome||'a empresa'}
+    </a>
+  </div>`:''}
+  `
+}
+
+let _sigDrawn=false
+
+function _sigInitCanvas(){
+  const c=document.getElementById('sigCanvas')
+  if(!c)return
+  _sigDrawn=false
+  const ctx=c.getContext('2d')
+  ctx.strokeStyle='#4CAF50'
+  ctx.lineWidth=3
+  ctx.lineCap='round'
+  ctx.lineJoin='round'
+  let drawing=false,lx=0,ly=0
+  function _pt(e){
+    const r=c.getBoundingClientRect()
+    const sx=c.width/r.width,sy=c.height/r.height
+    const src=e.touches?e.touches[0]:e
+    return{x:(src.clientX-r.left)*sx,y:(src.clientY-r.top)*sy}
+  }
+  function _start(e){e.preventDefault();drawing=true;const p=_pt(e);lx=p.x;ly=p.y;ctx.beginPath();ctx.arc(p.x,p.y,1.5,0,Math.PI*2);ctx.fillStyle='#4CAF50';ctx.fill();_sigDrawn=true;c.style.borderColor='#4CAF50'}
+  function _move(e){if(!drawing)return;e.preventDefault();const p=_pt(e);ctx.beginPath();ctx.moveTo(lx,ly);ctx.lineTo(p.x,p.y);ctx.stroke();lx=p.x;ly=p.y}
+  function _end(){drawing=false}
+  c.addEventListener('mousedown',_start)
+  c.addEventListener('mousemove',_move)
+  c.addEventListener('mouseup',_end)
+  c.addEventListener('mouseleave',_end)
+  c.addEventListener('touchstart',_start,{passive:false})
+  c.addEventListener('touchmove',_move,{passive:false})
+  c.addEventListener('touchend',_end)
+}
+
+function _sigClearCanvas(){
+  const c=document.getElementById('sigCanvas')
+  if(!c)return
+  c.getContext('2d').clearRect(0,0,c.width,c.height)
+  c.style.borderColor='#2E3850'
+  _sigDrawn=false
+}
+
+function _parseUA(ua){
+  if(!ua)return'Dispositivo desconhecido'
+  let browser='Navegador'
+  if(/Edg\/(\d+)/.test(ua))browser='Edge '+ua.match(/Edg\/(\d+)/)[1]
+  else if(/OPR\/(\d+)/.test(ua))browser='Opera '+ua.match(/OPR\/(\d+)/)[1]
+  else if(/Chrome\/(\d+)/.test(ua))browser='Chrome '+ua.match(/Chrome\/(\d+)/)[1]
+  else if(/Firefox\/(\d+)/.test(ua))browser='Firefox '+ua.match(/Firefox\/(\d+)/)[1]
+  else if(/Safari\//.test(ua))browser='Safari'
+  let os='SO desconhecido'
+  if(/iPhone/.test(ua))os='iPhone'
+  else if(/iPad/.test(ua))os='iPad'
+  else if(/Android/.test(ua))os='Android'+((/Android ([\d.]+)/.test(ua))?' '+ua.match(/Android ([\d.]+)/)[1]:'')
+  else if(/Windows NT 10/.test(ua))os='Windows 10/11'
+  else if(/Windows NT/.test(ua))os='Windows'
+  else if(/Mac OS X/.test(ua))os='macOS'
+  else if(/Linux/.test(ua))os='Linux'
+  return browser+' · '+os
+}
+
+async function _assinarOrcamento(token){
+  if(!_sigDrawn){
+    const c=document.getElementById('sigCanvas')
+    if(c)c.style.borderColor='#F44336'
+    return alert('Por favor, assine no campo acima antes de confirmar.')
+  }
+  const c=document.getElementById('sigCanvas')
+  const imgData=c?c.toDataURL('image/png'):null
+  const btn=document.querySelector('#sigContent button[onclick*="_assinarOrcamento"]')
+  if(btn){btn.disabled=true;btn.textContent='Coletando informações...'}
+  let signedIp='—'
+  try{const r=await fetch('https://api.ipify.org?format=json');const j=await r.json();signedIp=j.ip||'—'}catch{}
+  const signedDevice=_parseUA(navigator.userAgent)
+  const signedUA=navigator.userAgent||''
+  if(btn)btn.textContent='Assinando...'
+  try{
+    await _fdb.collection('sigs').doc(token).update({signed:true,signedAt:Date.now(),signedImg:imgData,signedNome:null,signedIp,signedDevice,signedUA})
+    const snap=await _fdb.collection('sigs').doc(token).get()
+    const sigData=snap.data()
+    // Atualiza status do orçamento para "aprovado" no banco central
+    if(sigData.orcId){
+      try{
+        const orcDoc=await _fdb.collection('at_sync').doc('orc').get()
+        if(orcDoc.exists){
+          const orcs=JSON.parse(orcDoc.data().data||'[]')
+          const idx=orcs.findIndex(x=>x.id===sigData.orcId)
+          if(idx>=0&&orcs[idx].status!=='aprovado'){
+            orcs[idx].status='aprovado'
+            await _fdb.collection('at_sync').doc('orc').set({data:JSON.stringify(orcs),ts:Date.now()})
+          }
+        }
+      }catch(err){console.warn('status update:',err)}
+    }
+    document.getElementById('sigContent').innerHTML=_sigJaAssinou(sigData)
+  }catch(e){
+    if(btn){btn.disabled=false;btn.textContent='✅ Confirmar e Assinar'}
+    alert('Erro ao assinar: '+e.message)
+  }
+}
+
+async function gerarLinkAssinatura(orcId){
+  const list=DB.get(S.ORC)||[]
+  const o=list.find(x=>x.id===orcId)
+  if(!o)return toast('Orçamento não encontrado','warn')
+  const emp=getEmpresa()
+  const cli=(DB.get(S.CLI)||[]).find(x=>x.id===o.cliId)||{}
+  openModal('🔗 Link de Assinatura',
+    `<div id="sigModalContent" style="text-align:center;padding:24px 0;color:var(--txt3)">⏳ Gerando link...</div>`,
+    `<button class="btn btn-o btn-sm" onclick="closeModal()">Fechar</button>`)
+  try{
+    if(!_fdb){
+      if(!firebase.apps.length)firebase.initializeApp(_AT_FB)
+      _fdb=firebase.firestore()
+      _fdb.settings({experimentalForceLongPolling:true,merge:true})
+    }
+    const _nomesAtuais=itens=>(itens||[]).map(it=>{
+      const pAtual=it.prodId&&it.prodId!=='_custom'?(DB.get(S.PRO)||[]).find(p=>p.id===it.prodId):null
+      if(!pAtual)return{...it}
+      return{...it,...pAtual,prodId:it.prodId,nome:pAtual.nome,qtd:it.qtd,un:it.un,pu:it.pu,sub:it.sub,locais:it.locais,obs:it.obs,cat:it.cat}
+    })
+    let token=o.sigToken
+    if(token){
+      const snap=await _fdb.collection('sigs').doc(token).get()
+      if(snap.exists){
+        const sigAtual=snap.data()
+        const itensAtualizados=_nomesAtuais(sigAtual.orc?.itens)
+        const orcAtualizado={...sigAtual.orc,itens:itensAtualizados,
+          totalF:o.totalF||0,sub:o.sub||0,desc:o.desc||0,pgto:o.pgto||'',obs:o.obs||'',endObra:o.endObra||'',dataInicio:o.dataInicio||'',dataFim:o.dataFim||''}
+        const sigAtualizado={...sigAtual,orc:orcAtualizado,
+          empresa:{nome:emp.nome,fantasia:emp.fantasia,fone:emp.fone,wa:emp.wa||''},
+          cli:{nome:cli.nome||'',fone:cli.fone||''}}
+        if(!sigAtual.signed)await _fdb.collection('sigs').doc(token).update({orc:orcAtualizado,empresa:sigAtualizado.empresa,cli:sigAtualizado.cli})
+        // Se já está assinado, atualiza status local para "aprovado"
+        if(sigAtual.signed){
+          const llist=DB.get(S.ORC)||[]
+          const lidx=llist.findIndex(x=>x.id===orcId)
+          if(lidx>=0&&llist[lidx].status!=='aprovado'){llist[lidx].status='aprovado';DB.set(S.ORC,llist);renderOrcamentos()}
+        }
+        _showSigModal(token,sigAtualizado);return
+      }
+    }
+    // Gera token de 8 chars base-36
+    token=(Math.random().toString(36).slice(2,6)+Math.random().toString(36).slice(2,6)).slice(0,8)
+    const sigData={
+      orcId,
+      empresa:{nome:emp.nome,fantasia:emp.fantasia,fone:emp.fone,wa:emp.wa||''},
+      orc:{num:o.num,data:o.data,validade:o.validade,endObra:o.endObra||'',dataInicio:o.dataInicio||'',dataFim:o.dataFim||'',pgto:o.pgto||'',obs:o.obs||'',totalF:o.totalF||0,sub:o.sub||0,desc:o.desc||0,
+        itens:_nomesAtuais(o.itens)},
+      cli:{nome:cli.nome||'',fone:cli.fone||''},
+      signed:false,signedAt:null,signedNome:null,createdAt:Date.now()
+    }
+    await _fdb.collection('sigs').doc(token).set(sigData)
+    // Salva token no orçamento
+    const idx=list.findIndex(x=>x.id===orcId)
+    if(idx>=0){list[idx].sigToken=token;DB.set(S.ORC,list)}
+    _showSigModal(token,sigData)
+  }catch(e){
+    document.getElementById('sigModalContent').innerHTML=`<div style="color:var(--dan);text-align:center">Erro: ${e.message}</div>`
+  }
+}
+
+function _showSigModal(token,sig){
+  const url=location.origin+location.pathname+'?sig='+token
+  const wa=sig.empresa?.wa||sig.empresa?.fone||''
+  const waDest=_waLink(wa)
+  const orcLabel='ORC-'+String(sig.orc?.num||0).padStart(4,'0')
+  const cliNomeStr=sig.cli?.nome||''
+  const waMsg=waDest?waDest+'?text='+encodeURIComponent('Olá'+(cliNomeStr?' '+cliNomeStr:'')+', segue o link para aprovar o orçamento '+orcLabel+':\n'+url):''
+  const signed=sig.signed
+  const dt=sig.signedAt?new Date(sig.signedAt).toLocaleString('pt-BR'):''
+  document.getElementById('sigModalContent').innerHTML=`
+    ${signed?`<div style="background:rgba(76,175,80,.12);border:1px solid rgba(76,175,80,.3);border-radius:10px;padding:14px;margin-bottom:14px;text-align:center">
+      <div style="color:#66BB6A;font-size:13px;font-weight:700;margin-bottom:4px">✅ Orçamento aprovado e assinado</div>
+      ${dt?`<div style="color:var(--txt3);font-size:11px;margin-bottom:10px">em ${dt}</div>`:''}
+      ${sig.signedImg?`<div style="background:#0a0d14;border:1px solid #2e3850;border-radius:8px;padding:8px;display:inline-block;margin-bottom:10px">
+        <div style="font-size:10px;color:var(--txt3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.8px">Assinatura do cliente</div>
+        <img src="${sig.signedImg}" style="max-width:240px;height:auto;display:block">
+      </div>`:(sig.signedNome?`<div style="font-size:12px;color:var(--txt2);margin-bottom:10px">Assinado por <strong>${sig.signedNome}</strong></div>`:'')}
+      <button class="btn btn-a btn-sm" onclick="imprimirDocAssinado('${token}')" style="width:100%">📄 Imprimir documento assinado</button>
+    </div>`:
+    `<div style="background:rgba(255,179,0,.08);border:1px solid rgba(255,179,0,.2);border-radius:10px;padding:10px 14px;margin-bottom:16px;color:var(--acc);font-size:12px;text-align:center">
+      ⏳ Aguardando assinatura do cliente
+    </div>`}
+    <div style="font-size:11px;color:var(--txt3);margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px">Link para o cliente</div>
+    <div style="display:flex;gap:6px;margin-bottom:14px;align-items:center">
+      <input id="sigLinkInput" value="${url}" readonly style="flex:1;font-size:12px;background:var(--card2);border:1px solid var(--b2);border-radius:6px;color:var(--txt2);padding:8px 10px;cursor:text">
+      <button class="btn btn-o btn-sm" onclick="navigator.clipboard.writeText('${url}').then(()=>toast('Link copiado!'))">📋</button>
+    </div>
+    ${!signed&&waMsg?`<a href="${waMsg}" target="_blank" class="btn btn-s" style="width:100%;justify-content:center;text-decoration:none;display:flex;font-size:13px;padding:12px">
+      💬 Enviar no WhatsApp</a>`:
+    (!signed?`<div style="font-size:12px;color:var(--txt3);text-align:center">Configure o WhatsApp da empresa em Configurações para envio direto.</div>`:'')}
+    <div style="font-size:11px;color:var(--txt4);margin-top:14px;text-align:center">O cliente pode assinar apenas uma vez pelo link.</div>
+  `
+}
+
+function logout(){
+  sessionStorage.removeItem('at_ok')
+  sessionStorage.removeItem('at_session')
+  location.reload()
+}
+
+// ── Navigation ──
+let _page=''
+function nav(page){
+  _page=page
+  document.querySelectorAll('.sb-item').forEach(el=>el.classList.remove('active'))
+  const sb=document.getElementById('sb-'+page)
+  if(sb)sb.classList.add('active')
+  // Mobile bottom nav active state
+  document.querySelectorAll('.mn-item').forEach(el=>el.classList.remove('active'))
+  const mn=document.getElementById('mn-'+page)||document.getElementById('mn-mais')
+  if(mn)mn.classList.add('active')
+  const titles={dashboard:'Dashboard',orcamentos:'Orçamentos',os:'Ordens de Serviço',clientes:'Clientes',produtos:'Produtos / Serviços',estoque:'Estoque',financeiro:'Financeiro',config:'Configurações'}
+  document.getElementById('pageTitle').textContent=titles[page]||page
+  // Close sidebar on mobile
+  document.getElementById('sidebar').classList.remove('mob-open')
+  document.getElementById('sideOverlay').style.display='none'
+  const renders={dashboard:renderDashboard,orcamentos:renderOrcamentos,os:renderOS,clientes:renderClientes,produtos:renderProdutos,estoque:renderEstoque,financeiro:renderFinanceiro,config:renderConfig,chat:renderChat}
+  if(renders[page])renders[page]()
+}
+
+// ── Dashboard ──
+function renderDashboard(){
+  const orcs=DB.get(S.ORC)||[]
+  const oss=DB.get(S.OS)||[]
+  const clis=DB.get(S.CLI)||[]
+  const prods=DB.get(S.PRO)||[]
+  const fins=DB.get(S.FIN)||[]
+  const aprovados=orcs.filter(o=>o.status==='aprovado'||o.status==='executado')
+  const totalFaturado=aprovados.reduce((a,o)=>a+(o.totalF||0),0)
+  const recebido=fins.filter(f=>f.tipo==='entrada').reduce((a,f)=>a+(f.valor||0),0)
+  const pago=fins.filter(f=>f.tipo==='saida').reduce((a,f)=>a+(f.valor||0),0)
+  const osAbertas=oss.filter(o=>o.status==='aberta'||o.status==='andamento').length
+  const orcPendentes=orcs.filter(o=>o.status==='enviado').length
+
+  const recentOrcs=orcs.slice(-6).reverse()
+  const recentOS=oss.filter(o=>o.status!=='concluida'&&o.status!=='cancelada').slice(-5)
+
+  document.getElementById('content').innerHTML=`
+  <div class="g4" style="margin-bottom:18px">
+    <div class="card card-sm">
+      <div class="metric-ico">📋</div>
+      <div class="metric-val">${orcs.length}</div>
+      <div class="metric-lbl">Orçamentos</div>
+      <div class="metric-sub">${orcPendentes} aguardando resposta</div>
+    </div>
+    <div class="card card-sm">
+      <div class="metric-ico">🔧</div>
+      <div class="metric-val">${oss.length}</div>
+      <div class="metric-lbl">Ordens de Serviço</div>
+      <div class="metric-sub">${osAbertas} em aberto</div>
+    </div>
+    <div class="card card-sm">
+      <div class="metric-ico">💰</div>
+      <div class="metric-val" style="color:var(--suc);font-size:18px">${fmtR(recebido)}</div>
+      <div class="metric-lbl">Recebido</div>
+      <div class="metric-sub">Saldo: ${fmtR(recebido-pago)}</div>
+    </div>
+    <div class="card card-sm">
+      <div class="metric-ico">👥</div>
+      <div class="metric-val">${clis.length}</div>
+      <div class="metric-lbl">Clientes</div>
+      <div class="metric-sub">${prods.length} produtos cadastrados</div>
+    </div>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <div class="sh"><div><div class="stitle">Orçamentos Recentes</div></div><button class="btn btn-o btn-sm" onclick="nav('orcamentos')">Ver todos</button></div>
+      ${recentOrcs.length?`<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Nº</th><th>Cliente</th><th>Total</th><th>Status</th></tr></thead><tbody>
+      ${recentOrcs.map(o=>`<tr onclick="editarOrcamento('${o.id}')">
+        <td style="color:var(--pri);font-weight:700">${orcNumFmt(o.num)}</td>
+        <td>${cliNome(o.cliId)}</td>
+        <td style="font-weight:600">${fmtR(o.totalF||0)}</td>
+        <td><span class="bdg ${(ST_ORC[o.status]||{c:'bdg-gr'}).c}">${(ST_ORC[o.status]||{l:o.status}).l}</span></td>
+      </tr>`).join('')}
+      </tbody></table></div>`:
+      `<div class="empty"><div class="empty-ico">📋</div><div class="empty-t">Nenhum orçamento ainda</div><button class="btn btn-p btn-sm" style="margin-top:10px" onclick="nav('orcamentos')">Criar primeiro</button></div>`}
+    </div>
+    <div class="card">
+      <div class="sh"><div><div class="stitle">OS em Aberto</div></div><button class="btn btn-o btn-sm" onclick="nav('os')">Ver todas</button></div>
+      ${recentOS.length?`<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Nº</th><th>Cliente</th><th>Status</th></tr></thead><tbody>
+      ${recentOS.map(o=>`<tr onclick="editarOS('${o.id}')">
+        <td style="color:var(--acc);font-weight:700">${osNumFmt(o.num)}</td>
+        <td>${cliNome(o.cliId)}</td>
+        <td><span class="bdg ${(ST_OS[o.status]||{c:'bdg-gr'}).c}">${(ST_OS[o.status]||{l:o.status}).l}</span></td>
+      </tr>`).join('')}
+      </tbody></table></div>`:
+      `<div class="empty"><div class="empty-ico">🔧</div><div class="empty-t">Nenhuma OS em aberto</div></div>`}
+    </div>
+  </div>`
+}
+
+// ── Clientes ──
+function renderClientes(){
+  const list=DB.get(S.CLI)||[]
+  document.getElementById('content').innerHTML=`
+  <div class="sh"><div><div class="stitle">Clientes</div><div class="ssub">${list.length} cadastrado(s)</div></div>
+    <button class="btn btn-p" onclick="editarCliente()">+ Novo Cliente</button></div>
+  <div style="margin-bottom:12px"><input placeholder="🔍  Buscar cliente..." oninput="filtrarClientes(this.value)" style="max-width:320px"></div>
+  <div class="mob-tbl"><div class="tbl-wrap"><table class="tbl" id="tblCli">
+    <thead><tr><th>Nome</th><th>Telefone</th><th>Email</th><th>Endereço</th><th></th></tr></thead>
+    <tbody>${list.length?list.map(c=>`<tr onclick="editarCliente('${c.id}')">
+      <td style="font-weight:600;color:var(--txt)">${c.nome}</td>
+      <td>${c.fone||'—'}</td><td>${c.email||'—'}</td>
+      <td style="font-size:12px;color:var(--txt3)">${c.end||'—'}</td>
+      <td onclick="event.stopPropagation()"><button class="btn btn-g btn-ico" onclick="excluirCliente('${c.id}')">🗑️</button></td>
+    </tr>`).join(''):
+    '<tr><td colspan="5"><div class="empty"><div class="empty-ico">👥</div><div class="empty-t">Nenhum cliente cadastrado</div></div></td></tr>'}</tbody>
+  </table></div></div>
+  <div class="mob-card" id="mobCliCards">${_renderCliCards(list)}</div>`
+}
+
+function _renderCliCards(list){
+  if(!list.length)return'<div class="empty"><div class="empty-ico">👥</div><div class="empty-t">Nenhum cliente cadastrado</div></div>'
+  return list.map(c=>`<div class="mc-item" onclick="editarCliente('${c.id}')">
+    <div class="mc-r2" style="margin-bottom:4px">
+      <span class="mc-name">${c.nome}</span>
+      <div class="mc-acts" onclick="event.stopPropagation()">
+        <button class="btn btn-g btn-ico btn-sm" onclick="excluirCliente('${c.id}')">🗑️</button>
+      </div>
+    </div>
+    <span class="mc-sub">${[c.fone,c.email,c.end].filter(Boolean).join(' · ')||'—'}</span>
+  </div>`).join('')
+}
+
+function filtrarClientes(q){
+  const list=DB.get(S.CLI)||[]
+  const f=q?list.filter(c=>c.nome.toLowerCase().includes(q.toLowerCase())||((c.fone||'').includes(q))||((c.email||'').toLowerCase().includes(q.toLowerCase()))):list
+  const tbody=document.querySelector('#tblCli tbody')
+  if(tbody)tbody.innerHTML=f.map(c=>`<tr onclick="editarCliente('${c.id}')">
+    <td style="font-weight:600;color:var(--txt)">${c.nome}</td>
+    <td>${c.fone||'—'}</td><td>${c.email||'—'}</td>
+    <td style="font-size:12px;color:var(--txt3)">${c.end||'—'}</td>
+    <td onclick="event.stopPropagation()"><button class="btn btn-g btn-ico" onclick="excluirCliente('${c.id}')">🗑️</button></td>
+  </tr>`).join('')||'<tr><td colspan="5" style="text-align:center;color:var(--txt3);padding:20px">Nenhum resultado</td></tr>'
+  const mc=document.getElementById('mobCliCards')
+  if(mc)mc.innerHTML=_renderCliCards(f)
+}
+
+function editarCliente(id){
+  const list=DB.get(S.CLI)||[]
+  const c=id?list.find(x=>x.id===id)||{}:{}
+  openModal(id?'Editar Cliente':'Novo Cliente',`
+  <div class="fr c2"><div class="fg"><label>Nome Completo *</label><input id="cNome" value="${c.nome||''}"></div>
+  <div class="fg"><label>CPF / CNPJ</label><input id="cDoc" value="${c.doc||''}"></div></div>
+  <div class="fr c2"><div class="fg"><label>Telefone / WhatsApp</label><input id="cFone" value="${c.fone||''}"></div>
+  <div class="fg"><label>Email</label><input id="cEmail" value="${c.email||''}"></div></div>
+  <div class="fr"><div class="fg"><label>Endereço Completo</label><input id="cEnd" value="${c.end||''}"></div></div>
+  <div class="fr"><div class="fg"><label>Observações</label><textarea id="cObs">${c.obs||''}</textarea></div></div>`,
+  `<button class="btn btn-o btn-sm" onclick="closeModal()">Cancelar</button>
+   <button class="btn btn-p btn-sm" onclick="salvarCliente('${id||''}')">Salvar</button>`)
+}
+
+function salvarCliente(id){
+  const nome=document.getElementById('cNome').value.trim()
+  if(!nome)return toast('Informe o nome do cliente','warn')
+  const list=DB.get(S.CLI)||[]
+  const data={id:id||genId(),nome,doc:v('cDoc'),fone:v('cFone'),email:v('cEmail'),end:v('cEnd'),obs:v('cObs')}
+  if(id){const i=list.findIndex(x=>x.id===id);if(i>=0)list[i]=data;else list.push(data)}else list.push(data)
+  DB.set(S.CLI,list);closeModal();toast('Cliente salvo');renderClientes()
+}
+
+function excluirCliente(id){
+  confirmarModal('Excluir este cliente?',()=>{
+    const list=(DB.get(S.CLI)||[]).filter(x=>x.id!==id)
+    DB.set(S.CLI,list);toast('Cliente excluído');renderClientes()
+  })
+}
+
+// ── Produtos ──
+async function renderProdutos(){
+  const list=DB.get(S.PRO)||[]
+  const cats=[...new Set(list.map(p=>p.cat))].sort()
+  document.getElementById('content').innerHTML=`
+  <div class="sh"><div><div class="stitle">Produtos e Serviços</div><div class="ssub">${list.length} cadastrado(s)</div></div>
+    <button class="btn btn-p" onclick="editarProduto()">+ Novo</button></div>
+  <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+    <input placeholder="🔍  Buscar..." oninput="filtrarProd(this.value)" style="max-width:260px">
+    <select id="filtProdCat" onchange="filtrarProd(document.querySelector('[placeholder*=Buscar]').value)" style="max-width:220px;width:auto">
+      <option value="">Todas as categorias</option>
+      ${CATS.map(c=>`<option value="${c.id}">${c.ico} ${c.nome}</option>`).join('')}
+    </select>
+  </div>
+  <div class="tbl-wrap"><table class="tbl" id="tblProd">
+    <thead><tr><th></th><th>Produto / Serviço</th><th>Categoria</th><th>Atributos</th><th>Un.</th><th>Preço Venda</th><th style="color:var(--acc);opacity:.7">🔒 Custo</th><th></th></tr></thead>
+    <tbody id="tblProdBody">${renderProdRows(list)}</tbody>
+  </table></div>`
+  await _loadProdImgs(list.filter(p=>p.img).map(p=>p.id))
+  const body=document.getElementById('tblProdBody')
+  if(body)body.innerHTML=renderProdRows(list)
+}
+
+function renderProdRows(list){
+  return list.length?list.map(p=>`<tr onclick="editarProduto('${p.id}')">
+    <td style="width:44px;padding:6px 4px 6px 10px">${_imgThumb(p.id,36)}</td>
+    <td><div style="font-weight:600;color:var(--txt)">${p.nome}</div>${p.desc?`<div style="font-size:11px;color:var(--txt3)">${p.desc}</div>`:''}</td>
+    <td><span class="bdg bdg-b">${catIco(p.cat)} ${catNome(p.cat)}</span></td>
+    <td style="max-width:200px">${getAttrTags(p)}</td>
+    <td style="color:var(--txt3)">${p.un||'un'}</td>
+    <td style="font-weight:700;color:var(--acc)">${fmtR(p.pu||0)}</td>
+    <td style="color:var(--txt3);font-size:12px">${p.custo?fmtR(p.custo):'-'}</td>
+    <td onclick="event.stopPropagation()" style="white-space:nowrap;gap:4px;display:flex;align-items:center;padding:8px 10px 8px 4px"><button class="btn btn-g btn-ico" title="Duplicar produto" onclick="duplicarProduto('${p.id}')">📋</button><button class="btn btn-g btn-ico" title="Excluir" onclick="excluirProduto('${p.id}')">🗑️</button></td>
+  </tr>`).join(''):'<tr><td colspan="8"><div class="empty"><div class="empty-ico">🔌</div><div class="empty-t">Nenhum produto cadastrado</div><button class="btn btn-p btn-sm" style="margin-top:10px" onclick="editarProduto()">Cadastrar primeiro</button></div></td></tr>'
+}
+
+function filtrarProd(q){
+  const cat=document.getElementById('filtProdCat')?.value||''
+  let list=DB.get(S.PRO)||[]
+  if(cat)list=list.filter(p=>p.cat===cat)
+  if(q)list=list.filter(p=>p.nome.toLowerCase().includes(q.toLowerCase())||(p.desc||'').toLowerCase().includes(q.toLowerCase()))
+  const b=document.getElementById('tblProdBody')
+  if(b)b.innerHTML=renderProdRows(list)
+}
+
+function _prodLabel(p){
+  const parts=[]
+  if(p.botoes)parts.push(`${p.botoes} bot${parseInt(p.botoes)>1?'ões':'ão'}`)
+  if(p.cor)parts.push(p.cor)
+  if(p.tipo)parts.push(p.tipo)
+  if(p.voltagem)parts.push(p.voltagem)
+  if(p.corrente)parts.push(p.corrente+'A')
+  if(p.potencia)parts.push(p.potencia+'W')
+  if(p.marca)parts.push(p.marca)
+  if(p.bitola)parts.push(p.bitola+'mm²')
+  if(p.tipoCabo)parts.push(p.tipoCabo)
+  if(p.material)parts.push(p.material)
+  if(p.diametro)parts.push('Ø'+p.diametro+'mm')
+  if(p.polos)parts.push(p.polos+' polos')
+  if(p.wifi)parts.push('Wi-Fi')
+  if(p.temTomada)parts.push('c/ tomada')
+  return parts.length?` — ${parts.join(', ')}`:''
+}
+
+// ── Imagens de produto ──
+const _imgCache={}
+let _prodImgData=null
+
+function _resizeImg(file,maxW=400,maxH=400,q=0.72){
+  return new Promise((res,rej)=>{
+    const r=new FileReader()
+    r.onload=e=>{
+      const img=new Image()
+      img.onload=()=>{
+        const sc=Math.min(maxW/img.width,maxH/img.height,1)
+        const c=document.createElement('canvas')
+        c.width=Math.round(img.width*sc);c.height=Math.round(img.height*sc)
+        c.getContext('2d').drawImage(img,0,0,c.width,c.height)
+        res(c.toDataURL('image/jpeg',q))
+      }
+      img.onerror=rej;img.src=e.target.result
+    }
+    r.onerror=rej;r.readAsDataURL(file)
+  })
+}
+
+async function _loadProdImgs(prodIds){
+  if(!prodIds?.length||!_fdb)return
+  const toLoad=[...new Set(prodIds)].filter(id=>id&&id!=='_custom'&&!(id in _imgCache))
+  if(!toLoad.length)return
+  await Promise.all(toLoad.map(async id=>{
+    try{const doc=await _fdb.collection('prod_imgs').doc(id).get();_imgCache[id]=doc.exists?doc.data().img||null:null}
+    catch{_imgCache[id]=null}
+  }))
+}
+
+function _previewProdImg(input){
+  const file=input.files[0];if(!file)return
+  _resizeImg(file).then(data=>{
+    _prodImgData=data
+    const el=document.getElementById('pImgPreview')
+    if(el)el.innerHTML=`<img src="${data}" style="width:100%;height:100%;object-fit:cover;border-radius:6px">`
+  }).catch(()=>toast('Erro ao processar imagem','warn'))
+}
+
+function _imgThumb(prodId,size=40){
+  const src=_imgCache[prodId]
+  return src?`<img src="${src}" style="width:${size}px;height:${size}px;object-fit:cover;border-radius:5px;flex-shrink:0" loading="lazy">`
+    :`<div style="width:${size}px;height:${size}px;border-radius:5px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:${size<50?12:18}px;flex-shrink:0;border:1px solid var(--b)">📦</div>`
+}
+
+function getAttrTags(p){
+  const tags=[]
+  if(p.cor)tags.push(`<span class="atag atag-b">${p.cor}</span>`)
+  if(p.botoes)tags.push(`<span class="atag atag-y">${p.botoes} bot${parseInt(p.botoes)>1?'ões':'ão'}</span>`)
+  if(p.temTomada)tags.push(`<span class="atag atag-g">c/ tomada</span>`)
+  if(p.wifi)tags.push(`<span class="atag atag-b">Wi-Fi</span>`)
+  if(p.bitola)tags.push(`<span class="atag atag-o">${p.bitola}mm²</span>`)
+  if(p.tipoCabo)tags.push(`<span class="atag atag-b">${p.tipoCabo}</span>`)
+  if(p.material)tags.push(`<span class="atag atag-g">${p.material}</span>`)
+  if(p.potencia)tags.push(`<span class="atag atag-y">${p.potencia}</span>`)
+  if(p.tempCor)tags.push(`<span class="atag atag-b">${p.tempCor}</span>`)
+  if(p.corrente)tags.push(`<span class="atag atag-r">${p.corrente}</span>`)
+  if(p.polo)tags.push(`<span class="atag atag-o">${p.polo}</span>`)
+  if(p.voltagem)tags.push(`<span class="atag atag-r">${p.voltagem}</span>`)
+  if(p.diametro)tags.push(`<span class="atag atag-o">Ø${p.diametro}mm</span>`)
+  if(p.polos)tags.push(`<span class="atag atag-o">${p.polos} polos</span>`)
+  if(p.tipoServico)tags.push(`<span class="atag atag-g">${p.tipoServico}</span>`)
+  return tags.join(' ')||'<span style="color:var(--txt4);font-size:11px">—</span>'
+}
+
+function attrFields(cat,d={}){
+  const sel=(f,opts,lbl)=>`<div class="fg"><label>${lbl}</label><select id="pa_${f}">${opts.map(o=>`<option value="${o}" ${d[f]===o?'selected':''}>${o}</option>`).join('')}</select></div>`
+  const chk=(f,lbl)=>`<div class="fg" style="justify-content:flex-end"><label style="margin-bottom:0;display:flex;align-items:center;gap:7px;cursor:pointer"><input type="checkbox" id="pa_${f}" ${d[f]?'checked':''} style="width:auto;accent-color:var(--pri)"> ${lbl}</label></div>`
+  const inp=(f,lbl,ph='')=>`<div class="fg"><label>${lbl}</label><input id="pa_${f}" value="${d[f]||''}" placeholder="${ph}"></div>`
+
+  if(cat==='inter_int')return`<div class="attr-block"><div class="attr-title">⚡ Atributos do Interruptor</div><div class="fr c3">
+    ${sel('cor',['Branco','Preto','Grafite'],'Cor')}
+    ${sel('botoes',['1','2','3','4','5','6','7','8'],'Nº de Botões')}
+    ${sel('tipo',['Touch / Capacitivo','Físico / Mecânico','Dimmer'],'Tipo')}
+  </div><div class="fr c3">
+    ${sel('voltagem',['127V','220V','Bivolt'],'Voltagem')}
+    ${chk('temTomada','Com Tomada Integrada')}
+    ${chk('wifi','Wi-Fi Integrado')}
+  </div></div>`
+
+  if(cat==='tomada')return`<div class="attr-block"><div class="attr-title">🔌 Atributos da Tomada</div><div class="fr c3">
+    ${sel('cor',['Branco','Preto','Grafite'],'Cor')}
+    ${sel('corrente',['10A','20A'],'Corrente')}
+    ${sel('tipoTomada',['Padrão NBR (2P+T)','USB-A','USB-C','USB + Padrão','HDMI','P+N+T Especial'],'Tipo')}
+  </div><div class="fr c2">
+    ${sel('voltagem',['127V','220V','Bivolt'],'Voltagem')}
+    ${chk('protInf','Proteção Infantil')}
+  </div></div>`
+
+  if(cat==='led_spot')return`<div class="attr-block"><div class="attr-title">💡 Atributos do Spot LED</div><div class="fr c3">
+    ${sel('potencia',['3W','5W','7W','9W','12W','18W'],'Potência')}
+    ${sel('tempCor',['3000K – Quente','4000K – Neutro','6000K – Frio'],'Temperatura de Cor')}
+    ${sel('recorte',['60mm','75mm','90mm','100mm','125mm'],'Recorte')}
+  </div><div class="fr c2">
+    ${sel('tensao',['127V','220V','Bivolt','12V DC'],'Tensão')}
+    ${inp('marca','Marca / Modelo','Ex: Elgin, Intelbras')}
+  </div></div>`
+
+  if(cat==='led_amb')return`<div class="attr-block"><div class="attr-title">🌟 Atributos LED Ambiente</div><div class="fr c3">
+    ${sel('tipoLed',['Painel / Plafon','Arandela','Pendente','Lâmpada Bulbo','Luminária'],'Tipo')}
+    ${sel('potencia',['9W','12W','15W','18W','24W','36W'],'Potência')}
+    ${sel('tempCor',['3000K – Quente','4000K – Neutro','6000K – Frio'],'Temperatura de Cor')}
+  </div><div class="fr c2">
+    ${sel('tensao',['127V','220V','Bivolt'],'Tensão')}
+    ${inp('marca','Marca / Modelo','Ex: Philips, Osram')}
+  </div></div>`
+
+  if(cat==='led_fita')return`<div class="attr-block"><div class="attr-title">〰️ Atributos Fita LED</div><div class="fr c3">
+    ${sel('potencia',['4.8W/m','7.2W/m','9.6W/m','14.4W/m','19.2W/m'],'Potência por Metro')}
+    ${sel('tempCor',['3000K – Quente','4000K – Neutro','6000K – Frio','RGB','RGBW'],'Temperatura / Cor')}
+    ${sel('ip',['IP20 – Uso interno','IP44 – Ambientes úmidos','IP65 – Uso externo','IP67 – Resistente à água'],'Proteção IP')}
+  </div><div class="fr c2">
+    ${sel('tensao',['12V DC','24V DC','127V','220V'],'Tensão')}
+    ${inp('marca','Marca / Modelo','')}
+  </div></div>`
+
+  if(cat==='cabo_fio')return`<div class="attr-block"><div class="attr-title">🔗 Atributos do Cabo / Fio</div><div class="fr c3">
+    ${sel('bitola',['1.5','2.5','4','6','10','16','25'],'Bitola (mm²)')}
+    ${sel('tipoCabo',['Fase (Vermelho/Preto)','Neutro (Azul)','Terra (Verde/Amarelo)','Cordão PP','Cabo Blindado','PP 3x'],'Tipo')}
+    ${sel('material',['Cobre Flexível','Cobre Sólido','Alumínio'],'Material')}
+  </div></div>`
+
+  if(cat==='eletroduto')return`<div class="attr-block"><div class="attr-title">⬡ Atributos do Eletroduto</div><div class="fr c3">
+    ${sel('diametro',['1/2" (16mm)','3/4" (20mm)','1" (25mm)','1.5" (40mm)','2" (50mm)'],'Diâmetro')}
+    ${sel('tipoEl',['PVC Rígido','PVC Flexível / Corrugado','Metálico / Conduíte'],'Tipo')}
+    ${inp('cor','Cor','Ex: Cinza, Preto, Branco')}
+  </div></div>`
+
+  if(cat==='qd_eletrico')return`<div class="attr-block"><div class="attr-title">🗄️ Atributos do Quadro Elétrico</div><div class="fr c3">
+    ${sel('polos',['4','6','8','12','16','20','24','36'],'Nº de Polos')}
+    ${sel('tipoQD',['Monofásico','Bifásico','Trifásico'],'Tipo')}
+    ${chk('embutir','Para embutir na parede')}
+  </div><div class="fr c2">
+    ${inp('marca','Marca','Ex: Schneider, WEG, Siemens')}
+    ${inp('corrente','Corrente do Barramento','Ex: 63A, 100A')}
+  </div></div>`
+
+  if(cat==='disjuntor')return`<div class="attr-block"><div class="attr-title">⚡ Atributos do Disjuntor / Proteção</div><div class="fr c3">
+    ${sel('tipoDisj',['Disjuntor Curva B','Disjuntor Curva C','DR (Diferencial Residual)','DPS (Protetor de Surto)','RCCB','Fusível'],'Tipo')}
+    ${sel('corrente',['6A','10A','16A','20A','25A','32A','40A','50A','63A','70A','80A','100A'],'Corrente')}
+    ${sel('polo',['Monopolar (1P)','Bipolar (2P)','Tripolar (3P)'],'Polo')}
+  </div><div class="fr c2">
+    ${inp('marca','Marca','Ex: Schneider, WEG, Siemens')}
+    ${inp('sensibilidade','Sensibilidade (DR)','Ex: 30mA, 100mA')}
+  </div></div>`
+
+  if(cat==='automacao')return`<div class="attr-block"><div class="attr-title">📡 Atributos de Automação</div><div class="fr c3">
+    ${sel('tipoAuto',['Central de Automação','Módulo Relé','Sensor de Presença','Sensor Abertura','Controlador de Cenas','Hub / Gateway','Dimmer Inteligente','Persiana Motorizada'],'Tipo')}
+    ${sel('protocolo',['Wi-Fi','Zigbee','Z-Wave','RF 433MHz','KNX','Matter','Outro'],'Protocolo')}
+    ${inp('compatibilidade','Compatível com','Ex: Alexa, Google Home')}
+  </div></div>`
+
+  if(cat==='servico')return`<div class="attr-block"><div class="attr-title">🔧 Tipo de Serviço</div><div class="fr c2">
+    ${sel('tipoServico',['Instalação Elétrica','Passagem de Cabos / Fios','Abertura de Rasgo','Fechamento de Rasgo','Instalação de Quadro','Instalação de Ponto (pto)','Laudo Técnico AVCB','Configuração de Automação','Manutenção Preventiva','Manutenção Corretiva','Projeto Elétrico','Outro'],'Tipo de Serviço')}
+    ${sel('unServico',['un','hr','m','pto','vb'],'Unidade Padrão')}
+  </div></div>`
+
+  return''
+}
+
+let _prodDupData=null
+function duplicarProduto(id){
+  const p=(DB.get(S.PRO)||[]).find(x=>x.id===id)
+  if(!p)return
+  _prodDupData={...p,nome:'Cópia de '+p.nome}
+  if(_imgCache[id])_prodDupData._srcImg=id
+  editarProduto()
+}
+
+function editarProduto(id){
+  const list=DB.get(S.PRO)||[]
+  const _dup=!id&&_prodDupData?_prodDupData:null
+  if(_dup)_prodDupData=null
+  const p=id?list.find(x=>x.id===id)||{}:(_dup||{})
+  const catSel=p.cat||'inter_int'
+  _prodImgData=null
+  const imgAtual=id?_imgCache[id]:(_dup&&_dup._srcImg?_imgCache[_dup._srcImg]:null)
+  if(_dup&&_dup._srcImg&&_imgCache[_dup._srcImg])_prodImgData=_imgCache[_dup._srcImg]
+  openModal(id?'Editar Produto / Serviço':'Novo Produto / Serviço',`
+  <div class="fr c2">
+    <div class="fg"><label>Categoria *</label><select id="pCat" onchange="updateAttrFields()">
+      ${CATS.map(c=>`<option value="${c.id}" ${catSel===c.id?'selected':''}>${c.ico} ${c.nome}</option>`).join('')}
+    </select></div>
+    <div class="fg"><label>Nome / Descrição Curta *</label><input id="pNome" value="${p.nome||''}"></div>
+  </div>
+  <div class="fr c4">
+    <div class="fg"><label>🔒 Custo de Compra (R$)</label><input id="pCusto" type="number" step="0.01" min="0" value="${p.custo||''}" style="border-color:rgba(255,179,0,.4)"></div>
+    <div class="fg"><label>Preço de Venda (R$) *</label><input id="pPu" type="number" step="0.01" min="0" value="${p.pu||''}"></div>
+    <div class="fg"><label>Unidade</label><select id="pUn">
+      ${['un','m','pto','hr','vb','kg','cx','rolo','m²','m³'].map(u=>`<option ${(p.un||'un')===u?'selected':''}>${u}</option>`).join('')}
+    </select></div>
+    <div class="fg"><label>Código / Ref.</label><input id="pCod" value="${p.cod||''}"></div>
+  </div>
+  <div class="fr"><div class="fg"><label>Descrição Detalhada</label><input id="pDesc" value="${p.desc||''}"></div></div>
+  <div class="fr">
+    <div class="fg"><label>📷 Foto do Produto</label>
+      <div style="display:flex;gap:12px;align-items:center;padding:10px;background:var(--card2);border:1px solid var(--b);border-radius:8px">
+        <div id="pImgPreview" style="width:72px;height:72px;border-radius:7px;overflow:hidden;border:1px solid var(--b);display:flex;align-items:center;justify-content:center;background:var(--card);flex-shrink:0">
+          ${imgAtual?`<img src="${imgAtual}" style="width:100%;height:100%;object-fit:cover">`:`<span style="font-size:28px">📦</span>`}
+        </div>
+        <div>
+          <input type="file" id="pImgFile" accept="image/*" style="display:none" onchange="_previewProdImg(this)">
+          <button type="button" class="btn btn-o btn-sm" onclick="document.getElementById('pImgFile').click()">📷 Selecionar foto</button>
+          <div style="font-size:11px;color:var(--txt3);margin-top:5px">JPG ou PNG · será redimensionada automaticamente</div>
+          ${p.img?`<button type="button" class="btn btn-g btn-sm" style="margin-top:6px" onclick="_marcarRemoverImg()">🗑️ Remover foto</button>`:''}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="attrArea">${attrFields(catSel,p)}</div>`,
+  `<button class="btn btn-o btn-sm" onclick="closeModal()">Cancelar</button>
+   <button class="btn btn-p btn-sm" onclick="salvarProduto('${id||''}')">Salvar</button>`,true)
+  if(id&&p.img&&!_imgCache[id]&&_fdb){
+    _fdb.collection('prod_imgs').doc(id).get().then(doc=>{
+      if(doc.exists){_imgCache[id]=doc.data().img;const el=document.getElementById('pImgPreview');if(el)el.innerHTML=`<img src="${_imgCache[id]}" style="width:100%;height:100%;object-fit:cover">`}
+    }).catch(()=>{})
+  }
+}
+
+let _removerImg=false
+function _marcarRemoverImg(){
+  _removerImg=true;_prodImgData=null
+  const el=document.getElementById('pImgPreview');if(el)el.innerHTML=`<span style="font-size:28px">📦</span>`
+  toast('Foto marcada para remover — clique Salvar para confirmar','ok',2500)
+}
+
+function updateAttrFields(){
+  const cat=document.getElementById('pCat').value
+  document.getElementById('attrArea').innerHTML=attrFields(cat)
+}
+
+function salvarProduto(id){
+  const nome=v('pNome').trim()
+  if(!nome)return toast('Informe o nome do produto','warn')
+  const cat=v('pCat')
+  const pu=parseFloat(v('pPu'))||0
+  const list=DB.get(S.PRO)||[]
+  const gc=f=>document.getElementById('pa_'+f)
+  const gcv=f=>{const el=gc(f);return el?(el.type==='checkbox'?el.checked:el.value)||'':''}
+  const custo=parseFloat(v('pCusto'))||0
+  const data={id:id||genId(),cat,nome,pu,custo,un:v('pUn'),desc:v('pDesc'),cod:v('pCod')}
+  // Category-specific attributes
+  const attrs=['cor','botoes','tipo','voltagem','temTomada','wifi','corrente','tipoTomada','protInf',
+    'potencia','tempCor','recorte','tensao','marca','tipoLed','ip','bitola','tipoCabo','material',
+    'diametro','tipoEl','polos','tipoQD','embutir','tipoDisj','polo','sensibilidade',
+    'tipoAuto','protocolo','compatibilidade','tipoServico','unServico']
+  attrs.forEach(a=>{const el=document.getElementById('pa_'+a);if(el){const val=el.type==='checkbox'?el.checked:el.value;if(val!==''&&val!==false)data[a]=val}})
+  if(_prodImgData)data.img=true
+  if(_removerImg&&!_prodImgData)data.img=false
+  if(id){const i=list.findIndex(x=>x.id===id);if(i>=0)list[i]=data;else list.push(data)}else list.push(data)
+  DB.set(S.PRO,list);closeModal();toast('Produto salvo');renderProdutos()
+  // Salvar/remover imagem no Firestore assincronamente
+  const finalId=data.id
+  if(_prodImgData&&_fdb){
+    _fdb.collection('prod_imgs').doc(finalId).set({img:_prodImgData}).then(()=>{_imgCache[finalId]=_prodImgData}).catch(e=>console.warn('img save:',e))
+  }else if(_removerImg&&_fdb){
+    _fdb.collection('prod_imgs').doc(finalId).delete().then(()=>{_imgCache[finalId]=null}).catch(()=>{})
+  }
+  _prodImgData=null;_removerImg=false
+}
+
+function excluirProduto(id){
+  confirmarModal('Excluir este produto?',()=>{
+    DB.set(S.PRO,(DB.get(S.PRO)||[]).filter(x=>x.id!==id));toast('Produto excluído');renderProdutos()
+  })
+}
+
+// ── Orçamentos ──
+let _orcItens=[]
+let _orcCopy=null
+function renderOrcamentos(){
+  const list=DB.get(S.ORC)||[]
+  const filt=['todos','rascunho','enviado','aprovado','executado','recusado']
+  const cur=window._orcFilt||'todos'
+  // Filtra por criador se não for admin
+  const u=currentUser()
+  let shown=isAdmin()?list:list.filter(o=>o.criadoPor===u.user)
+  if(cur!=='todos')shown=shown.filter(o=>o.status===cur)
+  const sorted=[...shown].sort((a,b)=>b.num-a.num)
+  document.getElementById('content').innerHTML=`
+  <div class="sh"><div><div class="stitle">Orçamentos</div><div class="ssub">${list.length} total</div></div>
+    <button class="btn btn-p" onclick="novoOrcamento()">+ Novo Orçamento</button></div>
+  <div class="tab-btns" style="margin-bottom:14px">
+    ${filt.map(f=>`<button class="tab-btn${cur===f?' active':''}" onclick="window._orcFilt='${f}';renderOrcamentos()">${f==='todos'?'Todos':ST_ORC[f]?ST_ORC[f].l:f}</button>`).join('')}
+  </div>
+  <div class="mob-tbl"><div class="tbl-wrap"><table class="tbl">
+    <thead><tr><th>Nº</th><th>Data</th><th>Cliente</th><th>Endereço Obra</th><th>Total</th><th>Status</th><th></th></tr></thead>
+    <tbody>${sorted.length?sorted.map(o=>`<tr onclick="editarOrcamento('${o.id}')">
+      <td style="color:var(--pri);font-weight:800">${orcNumFmt(o.num)}</td>
+      <td style="color:var(--txt3);font-size:12px">${fmtDate(o.data)}</td>
+      <td style="font-weight:600;color:var(--txt)">${cliNome(o.cliId)}</td>
+      <td style="font-size:12px;color:var(--txt3);max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${o.endObra||'—'}</td>
+      <td style="font-weight:700;color:var(--acc)">${fmtR(o.totalF||0)}</td>
+      <td><span class="bdg ${(ST_ORC[o.status]||{c:'bdg-gr'}).c}">${(ST_ORC[o.status]||{l:o.status}).l}</span></td>
+      <td onclick="event.stopPropagation()" style="white-space:nowrap">
+        <button class="btn btn-g btn-ico" onclick="imprimirOrcamento('${o.id}')" title="Imprimir">🖨️</button>
+        <button class="btn btn-g btn-ico" onclick="imprimirRomaneio('${o.id}')" title="Romaneio de entrega">📦</button>
+        <button class="btn btn-g btn-ico" onclick="novaOSdeOrc('${o.id}')" title="Criar OS">🔧</button>
+        <button class="btn btn-g btn-ico" onclick="gerarLinkAssinatura('${o.id}')" title="Link assinatura"${o.sigToken?` style="color:var(--suc)"`:''}>🔗</button>
+        <button class="btn btn-g btn-ico" onclick="duplicarOrcamento('${o.id}')" title="Duplicar orçamento">📋</button>
+        <button class="btn btn-g btn-ico" onclick="excluirOrcamento('${o.id}')">🗑️</button>
+      </td>
+    </tr>`).join(''):
+    '<tr><td colspan="7"><div class="empty"><div class="empty-ico">📋</div><div class="empty-t">Nenhum orçamento</div></div></td></tr>'}</tbody>
+  </table></div></div>
+  <div class="mob-card">${sorted.length?sorted.map(o=>`
+  <div class="mc-item" onclick="editarOrcamento('${o.id}')">
+    <div class="mc-r1">
+      <span class="mc-id">${orcNumFmt(o.num)}</span>
+      <span class="bdg ${(ST_ORC[o.status]||{c:'bdg-gr'}).c}">${(ST_ORC[o.status]||{l:o.status}).l}</span>
+    </div>
+    <div class="mc-r2" style="margin-bottom:5px">
+      <span class="mc-name">${cliNome(o.cliId)}</span>
+      <span class="mc-val">${fmtR(o.totalF||0)}</span>
+    </div>
+    <div class="mc-r2">
+      <span class="mc-sub">${fmtDate(o.data)}${o.endObra?' · '+o.endObra:''}</span>
+      <div class="mc-acts" onclick="event.stopPropagation()">
+        <button class="btn btn-g btn-ico btn-sm" onclick="imprimirOrcamento('${o.id}')">🖨️</button>
+        <button class="btn btn-g btn-ico btn-sm" onclick="imprimirRomaneio('${o.id}')" title="Romaneio">📦</button>
+        <button class="btn btn-g btn-ico btn-sm" onclick="novaOSdeOrc('${o.id}')">🔧</button>
+        <button class="btn btn-g btn-ico btn-sm" onclick="gerarLinkAssinatura('${o.id}')"${o.sigToken?` style="color:var(--suc)"`:''}>🔗</button>
+        <button class="btn btn-g btn-ico btn-sm" onclick="duplicarOrcamento('${o.id}')">📋</button>
+        <button class="btn btn-g btn-ico btn-sm" onclick="excluirOrcamento('${o.id}')">🗑️</button>
+      </div>
+    </div>
+  </div>`).join(''):'<div class="empty"><div class="empty-ico">📋</div><div class="empty-t">Nenhum orçamento</div></div>'}</div>`
+  // Badge
+  const pendentes=(DB.get(S.ORC)||[]).filter(o=>o.status==='enviado').length
+  const b=document.getElementById('bdg-orc')
+  if(b){b.style.display=pendentes?'':'none';b.textContent=pendentes}
+}
+
+function novoOrcamento(){editarOrcamento(null)}
+
+function editarOrcamento(id){
+  const list=DB.get(S.ORC)||[]
+  const clis=DB.get(S.CLI)||[]
+  const o=id?list.find(x=>x.id===id):null
+  const copy=!id&&_orcCopy?_orcCopy:null
+  if(!id)_orcCopy=null
+  const b=o||copy
+  _orcItens=b?JSON.parse(JSON.stringify(b.itens||[])):[]
+
+  const hoje=today()
+  const titulo=id?`Orçamento ${orcNumFmt(o.num)}`:copy?`Cópia de ${orcNumFmt(copy.num)}`:'Novo Orçamento'
+  openModal(titulo,`
+  <div class="fr c3">
+    <div class="fg"><label>Cliente *</label>
+      <div style="display:flex;gap:6px;align-items:center">
+        <select id="oCli" style="flex:1">
+          <option value="">Selecionar...</option>
+          ${clis.map(c=>`<option value="${c.id}" ${b&&b.cliId===c.id?'selected':''}>${c.nome}</option>`).join('')}
+        </select>
+        <button type="button" class="btn btn-o btn-sm" onclick="toggleNovoCliInline()" title="Criar novo cliente" style="flex-shrink:0;padding:9px 12px;font-size:16px;line-height:1">+</button>
+      </div>
+      <div id="novoCliInline" style="display:none;margin-top:8px;background:var(--card2);border:1px solid var(--pri);border-radius:8px;padding:12px">
+        <div style="font-size:10px;font-weight:700;letter-spacing:1.2px;color:var(--pri);margin-bottom:10px">⚡ NOVO CLIENTE</div>
+        <div class="fr c2" style="margin-bottom:8px">
+          <div class="fg"><label>Nome *</label><input id="ncNome" placeholder="Nome completo"></div>
+          <div class="fg"><label>Telefone / WhatsApp</label><input id="ncFone" placeholder="(00) 00000-0000"></div>
+        </div>
+        <div class="fr c2" style="margin-bottom:8px">
+          <div class="fg"><label>Email</label><input id="ncEmail" placeholder="email@exemplo.com"></div>
+          <div class="fg"><label>Endereço</label><input id="ncEnd" placeholder="Rua, número, bairro"></div>
+        </div>
+        <div style="display:flex;gap:6px;justify-content:flex-end">
+          <button type="button" class="btn btn-o btn-sm" onclick="toggleNovoCliInline()">Cancelar</button>
+          <button type="button" class="btn btn-p btn-sm" onclick="salvarClienteRapido()">✓ Salvar e Selecionar</button>
+        </div>
+      </div>
+    </div>
+    <div class="fg"><label>Data</label><input id="oData" type="date" value="${o?o.data:hoje}"></div>
+    <div class="fg"><label>Validade (dias)</label><input id="oVal" type="number" value="${b?b.valDias||30:30}" min="1"></div>
+  </div>
+  <div class="fr"><div class="fg"><label>Endereço da Obra</label><input id="oEnd" value="${b?b.endObra||'':''}" placeholder="Rua, número, bairro, cidade"></div></div>
+  <div class="fr c3">
+    <div class="fg"><label>Responsável Técnico</label><input id="oResp" value="${b?b.resp||getEmpresa().resp||'':getEmpresa().resp||''}"></div>
+    <div class="fg"><label>Data de Início</label><input id="oDataInicio" type="date" value="${b?b.dataInicio||'':''}"></div>
+    <div class="fg"><label>Data de Término</label><input id="oDataFim" type="date" value="${b?b.dataFim||'':''}"></div>
+  </div>
+  <div class="fr c3">
+    <div class="fg"><label>Desconto (R$)</label><input id="oDesc" type="number" step="0.01" min="0" value="${b?b.desc||0:0}" oninput="recalcOrc()" onchange="recalcOrc()" onblur="recalcOrc()"></div>
+    <div class="fg"><label>Condições de Pagamento</label><input id="oPgto" value="${b?b.pgto||'':'50% entrada, 50% entrega'}"></div>
+    <div class="fg"><label>Status</label><select id="oStatus">
+      ${Object.entries(ST_ORC).map(([k,s])=>`<option value="${k}" ${o&&o.status===k?'selected':''}>${s.l}</option>`).join('')}
+    </select></div>
+  </div>
+  <div class="fr"><div class="fg"><label>Observações / Condições Gerais</label><textarea id="oObs">${b?b.obs||'':''}</textarea></div></div>
+  <div class="divider"></div>
+  <div class="sh" style="margin-bottom:10px">
+    <div class="stitle">Itens do Orçamento</div>
+    <button class="btn btn-o btn-sm" onclick="orcAddItem()">+ Adicionar Item</button>
+  </div>
+  <div id="orcItensArea">${renderOrcItens()}</div>
+  <div style="background:var(--card2);border:1px solid var(--b);border-radius:8px;padding:12px 16px;margin-top:8px">
+    <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="color:var(--txt2)">Subtotal</span><span style="font-weight:600" id="oSubtotal">${fmtR(0)}</span></div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="color:var(--txt2)">Desconto</span><span style="color:var(--dan)" id="oDescDisp">${fmtR(0)}</span></div>
+    <div style="display:flex;justify-content:space-between;border-top:1px solid var(--b);padding-top:8px;margin-top:4px"><span style="font-weight:700;color:var(--txt)">TOTAL</span><span style="font-weight:800;font-size:18px;color:var(--acc)" id="oTotalDisp">${fmtR(0)}</span></div>
+  </div>
+  <div style="background:rgba(255,179,0,.06);border:1px solid rgba(255,179,0,.25);border-radius:8px;padding:12px 16px;margin-top:8px">
+    <div style="font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--acc);margin-bottom:10px;opacity:.85">🔒 Análise Interna — Não aparece para o cliente</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
+      <div style="text-align:center;background:var(--card);border:1px solid var(--b);border-radius:6px;padding:10px 8px">
+        <div style="font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">Custo Total</div>
+        <div style="font-size:15px;font-weight:700;color:var(--txt2)" id="orcCustoTotal">${fmtR(0)}</div>
+      </div>
+      <div style="text-align:center;background:var(--card);border:1px solid var(--b);border-radius:6px;padding:10px 8px">
+        <div style="font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">Lucro Bruto</div>
+        <div style="font-size:15px;font-weight:700;color:var(--suc)" id="orcLucro">${fmtR(0)}</div>
+      </div>
+      <div style="text-align:center;background:var(--card);border:1px solid var(--b);border-radius:6px;padding:10px 8px">
+        <div style="font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">Margem</div>
+        <div style="font-size:15px;font-weight:700;color:var(--pri)" id="orcMargem">0.0%</div>
+      </div>
+    </div>
+    <div style="background:var(--card);border:1px solid var(--b);border-radius:4px;overflow:hidden;height:6px"><div id="orcMargemBar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--suc),var(--pri));border-radius:4px;transition:width .4s"></div></div>
+  </div>`,
+  `<button class="btn btn-o btn-sm" onclick="closeModal()">Cancelar</button>
+   ${id?`<button class="btn btn-o btn-sm" onclick="gerarLinkAssinatura('${id}')">🔗 Link</button>`:''}
+   ${id?`<button class="btn btn-g btn-sm" onclick="salvarOrcamento('${id}');setTimeout(()=>imprimirRomaneio('${id}'),300)">📦 Romaneio</button>`:''}
+   ${id?`<button class="btn btn-a btn-sm" onclick="salvarEImprimirOrcamento('${id}')">🖨️ Imprimir</button>`:''}
+   <button class="btn btn-p btn-sm" onclick="salvarOrcamento('${id||''}')">Salvar</button>`,'xl')
+  recalcOrc()
+}
+
+function duplicarOrcamento(id){
+  const list=DB.get(S.ORC)||[]
+  const o=list.find(x=>x.id===id)
+  if(!o)return
+  _orcCopy=o
+  editarOrcamento(null)
+}
+
+function renderOrcItens(){
+  const prods=DB.get(S.PRO)||[]
+  if(!_orcItens.length)return`<div class="empty" style="padding:24px"><div class="empty-t">Nenhum item adicionado</div><div class="empty-s">Clique em "+ Adicionar Item" para começar</div></div>`
+  return _orcItens.map((it,i)=>`
+  <div class="orc-item" id="orcItem${i}">
+    <div class="orc-item-top">
+      <div><label>Produto / Serviço</label>
+        <select onchange="orcSetProd(${i},this.value)" style="font-size:12px">
+          <option value="_custom">✏️ Personalizado</option>
+          ${prods.map(p=>`<option value="${p.id}" ${it.prodId===p.id?'selected':''}>${catIco(p.cat)} ${p.nome}${_prodLabel(p)}</option>`).join('')}
+        </select>
+        ${it.prodId==='_custom'?`<input id="orcItemNome${i}" placeholder="Nome do item" value="${it.nome||''}" style="margin-top:5px;font-size:12px" oninput="_orcItens[${i}].nome=this.value">`:
+        `<div style="font-size:11px;color:var(--txt3);margin-top:3px">${getAttrTags(it)}</div>`}
+      </div>
+      <div><label>Qtd.</label><input type="number" step="0.01" min="0.01" value="${it.qtd||1}" oninput="_orcItens[${i}].qtd=parseFloat(this.value)||1;recalcOrc()" style="text-align:center"></div>
+      <div><label>Un.</label><select onchange="_orcItens[${i}].un=this.value" style="font-size:12px">
+        ${['un','m','pto','hr','vb','kg','cx','rolo','m²'].map(u=>`<option ${(it.un||'un')===u?'selected':''}>${u}</option>`).join('')}
+      </select></div>
+      <div><label>Preço Unit.</label><input type="number" step="0.01" min="0" value="${it.pu||0}" oninput="_orcItens[${i}].pu=parseFloat(this.value)||0;recalcOrc()" style="text-align:right"></div>
+      <div><label style="color:var(--acc);opacity:.7">🔒 Custo Unit.</label><input type="number" step="0.01" min="0" value="${it.custo||0}" oninput="_orcItens[${i}].custo=parseFloat(this.value)||0;recalcOrc()" style="text-align:right;border-color:rgba(255,179,0,.35);color:var(--txt3)" title="Custo interno — não aparece para o cliente"></div>
+      <div><label>Subtotal</label><div style="padding:9px 11px;font-weight:700;color:var(--acc);font-size:13px" id="orcSub${i}">${fmtR((it.qtd||1)*(it.pu||0))}</div></div>
+      <div style="display:flex;align-items:flex-end;padding-bottom:2px"><button class="btn btn-g btn-ico" onclick="orcRemItem(${i})">🗑️</button></div>
+    </div>
+    <div class="orc-item-bot">
+      <label style="margin-bottom:6px">📍 Local de Execução</label>
+      <div class="chips">${LOCAIS.map(l=>`<span class="chip${(it.locais||[]).includes(l)?' sel':''}" onclick="orcToggleLocal(${i},'${l}')">${l}</span>`).join('')}</div>
+      <input placeholder="Observação deste item (opcional)" value="${it.obs||''}" oninput="_orcItens[${i}].obs=this.value" style="margin-top:8px;font-size:12px">
+    </div>
+  </div>`).join('')
+}
+
+function orcAddItem(){
+  _orcItens.push({prodId:'_custom',nome:'',qtd:1,un:'un',pu:0,custo:0,sub:0,locais:[],obs:''})
+  document.getElementById('orcItensArea').innerHTML=renderOrcItens()
+  recalcOrc()
+}
+
+function orcRemItem(i){_orcItens.splice(i,1);document.getElementById('orcItensArea').innerHTML=renderOrcItens();recalcOrc()}
+
+function orcSetProd(i,prodId){
+  if(prodId==='_custom'){_orcItens[i]={..._orcItens[i],prodId:'_custom',nome:'',pu:0,custo:0}}
+  else{
+    const p=(DB.get(S.PRO)||[]).find(x=>x.id===prodId)
+    if(p){
+      const {id:_,...attrs}=p
+      _orcItens[i]={..._orcItens[i],...attrs,prodId}
+    }
+  }
+  document.getElementById('orcItensArea').innerHTML=renderOrcItens()
+  recalcOrc()
+}
+
+function orcToggleLocal(i,local){
+  const loc=_orcItens[i].locais||[]
+  const idx=loc.indexOf(local)
+  if(idx>=0)loc.splice(idx,1);else loc.push(local)
+  _orcItens[i].locais=loc
+  // Update chips without full re-render
+  const area=document.getElementById('orcItem'+i)
+  if(area){const chips=area.querySelectorAll('.chip');chips.forEach(c=>{const sel=loc.includes(c.textContent.trim());c.classList.toggle('sel',sel)})}
+}
+
+function recalcOrc(){
+  let sub=0,custoTotal=0
+  _orcItens.forEach((it,i)=>{
+    const s=(it.qtd||1)*(it.pu||0)
+    const cs=(it.qtd||1)*(it.custo||0)
+    it.sub=s;it.custoSub=cs;sub+=s;custoTotal+=cs
+    const el=document.getElementById('orcSub'+i)
+    if(el)el.textContent=fmtR(s)
+  })
+  const desc=parseFloat(document.getElementById('oDesc')?.value)||0
+  const total=Math.max(0,sub-desc)
+  const lucro=total-custoTotal
+  const margem=total>0?((lucro/total)*100):0
+  const st=document.getElementById('oSubtotal')
+  const sd=document.getElementById('oDescDisp')
+  const tt=document.getElementById('oTotalDisp')
+  if(st)st.textContent=fmtR(sub)
+  if(sd)sd.textContent=fmtR(desc)
+  if(tt)tt.textContent=fmtR(total)
+  const mc=document.getElementById('orcCustoTotal')
+  const ml=document.getElementById('orcLucro')
+  const mm=document.getElementById('orcMargem')
+  const mb=document.getElementById('orcMargemBar')
+  if(mc)mc.textContent=fmtR(custoTotal)
+  if(ml)ml.textContent=fmtR(lucro)
+  if(mm)mm.textContent=margem.toFixed(1)+'%'
+  if(mb)mb.style.width=Math.min(100,Math.max(0,margem)).toFixed(1)+'%'
+}
+
+function _buildOrcData(id){
+  recalcOrc()
+  const cliId=v('oCli')
+  if(!cliId){toast('Selecione um cliente','warn');return null}
+  if(!_orcItens.length){toast('Adicione pelo menos um item','warn');return null}
+  _orcItens.forEach((it,i)=>{if(it.prodId==='_custom'){const el=document.getElementById('orcItemNome'+i);if(el)it.nome=el.value}})
+  const desc=parseFloat(v('oDesc'))||0
+  const sub=_orcItens.reduce((a,it)=>a+(it.sub||0),0)
+  const totalF=Math.max(0,sub-desc)
+  const list=DB.get(S.ORC)||[]
+  const valDias=parseInt(v('oVal'))||30
+  return{
+    data:{
+      id:id||genId(),num:id?list.find(x=>x.id===id)?.num||nextNum(list):Math.max(nextNum(list),192308),
+      cliId,data:v('oData'),valDias,validade:addDays(v('oData'),valDias),
+      endObra:v('oEnd'),resp:v('oResp'),dataInicio:v('oDataInicio'),dataFim:v('oDataFim'),desc,pgto:v('oPgto'),
+      status:v('oStatus'),obs:v('oObs'),
+      itens:JSON.parse(JSON.stringify(_orcItens)),sub,totalF,
+      custoTotal:_orcItens.reduce((a,it)=>a+(it.custoSub||0),0),
+      criadoPor:id?(list.find(x=>x.id===id)?.criadoPor||currentUser().user):currentUser().user
+    },
+    list
+  }
+}
+
+function salvarOrcamento(id){
+  const r=_buildOrcData(id);if(!r)return
+  const{data,list}=r
+  if(id){const i=list.findIndex(x=>x.id===id);if(i>=0)list[i]=data;else list.push(data)}else list.push(data)
+  DB.set(S.ORC,list);closeModal();toast('Orçamento salvo');renderOrcamentos()
+}
+
+function salvarEImprimirOrcamento(id){
+  const r=_buildOrcData(id);if(!r)return
+  const{data,list}=r
+  if(id){const i=list.findIndex(x=>x.id===id);if(i>=0)list[i]=data;else list.push(data)}else list.push(data)
+  DB.set(S.ORC,list)
+  toast('Salvo','ok',1500)
+  setTimeout(()=>imprimirOrcamento(id||data.id),150)
+}
+
+function excluirOrcamento(id){
+  confirmarModal('Excluir este orçamento permanentemente?',()=>{
+    DB.set(S.ORC,(DB.get(S.ORC)||[]).filter(x=>x.id!==id));toast('Orçamento excluído');renderOrcamentos()
+  })
+}
+
+function toggleNovoCliInline(){
+  const el=document.getElementById('novoCliInline')
+  if(!el)return
+  const open=el.style.display==='none'
+  el.style.display=open?'block':'none'
+  if(open)setTimeout(()=>document.getElementById('ncNome')?.focus(),50)
+}
+
+function salvarClienteRapido(){
+  const nome=(document.getElementById('ncNome')?.value||'').trim()
+  if(!nome)return toast('Informe o nome do cliente','warn')
+  const list=DB.get(S.CLI)||[]
+  const newCli={id:genId(),nome,fone:document.getElementById('ncFone')?.value||'',
+    email:document.getElementById('ncEmail')?.value||'',end:document.getElementById('ncEnd')?.value||'',obs:''}
+  list.push(newCli)
+  DB.set(S.CLI,list)
+  const sel=document.getElementById('oCli')
+  if(sel){
+    const opt=document.createElement('option')
+    opt.value=newCli.id
+    opt.textContent=newCli.nome
+    opt.selected=true
+    sel.appendChild(opt)
+  }
+  toggleNovoCliInline()
+  toast('Cliente criado e selecionado')
+}
+
+// ── OS — Ordens de Serviço ──
+function renderOS(){
+  const list=DB.get(S.OS)||[]
+  const cur=window._osFilt||'todos'
+  const shown=cur==='todos'?list:list.filter(o=>o.status===cur)
+  const sorted=[...shown].sort((a,b)=>b.num-a.num)
+  document.getElementById('content').innerHTML=`
+  <div class="sh"><div><div class="stitle">Ordens de Serviço</div><div class="ssub">${list.length} total</div></div>
+    <button class="btn btn-p" onclick="editarOS()">+ Nova OS</button></div>
+  <div class="tab-btns" style="margin-bottom:14px">
+    ${['todos','aberta','andamento','concluida','cancelada'].map(f=>`<button class="tab-btn${cur===f?' active':''}" onclick="window._osFilt='${f}';renderOS()">${f==='todos'?'Todas':ST_OS[f]?ST_OS[f].l:f}</button>`).join('')}
+  </div>
+  <div class="mob-tbl"><div class="tbl-wrap"><table class="tbl">
+    <thead><tr><th>Nº</th><th>Orçamento</th><th>Cliente</th><th>Data Prev.</th><th>Técnico</th><th>Status</th><th></th></tr></thead>
+    <tbody>${sorted.length?sorted.map(o=>`<tr onclick="editarOS('${o.id}')">
+      <td style="color:var(--acc);font-weight:800">${osNumFmt(o.num)}</td>
+      <td style="font-size:12px;color:var(--txt3)">${o.orcId?orcNumFmt((DB.get(S.ORC)||[]).find(x=>x.id===o.orcId)?.num||0):'—'}</td>
+      <td style="font-weight:600;color:var(--txt)">${cliNome(o.cliId)}</td>
+      <td style="font-size:12px">${fmtDate(o.dataPrev)||'—'}</td>
+      <td style="font-size:12px">${o.tecnico||'—'}</td>
+      <td><span class="bdg ${(ST_OS[o.status]||{c:'bdg-gr'}).c}">${(ST_OS[o.status]||{l:o.status}).l}</span></td>
+      <td onclick="event.stopPropagation()" style="white-space:nowrap">
+        <button class="btn btn-g btn-ico" onclick="imprimirOS('${o.id}')" title="Imprimir">🖨️</button>
+        <button class="btn btn-g btn-ico" onclick="excluirOS('${o.id}')">🗑️</button>
+      </td>
+    </tr>`).join(''):'<tr><td colspan="7"><div class="empty"><div class="empty-ico">🔧</div><div class="empty-t">Nenhuma OS cadastrada</div></div></td></tr>'}</tbody>
+  </table></div></div>
+  <div class="mob-card">${sorted.length?sorted.map(o=>`
+  <div class="mc-item" onclick="editarOS('${o.id}')">
+    <div class="mc-r1">
+      <span class="mc-id mc-idy">${osNumFmt(o.num)}</span>
+      <span class="bdg ${(ST_OS[o.status]||{c:'bdg-gr'}).c}">${(ST_OS[o.status]||{l:o.status}).l}</span>
+    </div>
+    <div class="mc-r2" style="margin-bottom:5px">
+      <span class="mc-name">${cliNome(o.cliId)}</span>
+    </div>
+    <div class="mc-r2">
+      <span class="mc-sub">${fmtDate(o.dataPrev)||'—'}${o.tecnico?' · '+o.tecnico:''}</span>
+      <div class="mc-acts" onclick="event.stopPropagation()">
+        <button class="btn btn-g btn-ico btn-sm" onclick="imprimirOS('${o.id}')">🖨️</button>
+        <button class="btn btn-g btn-ico btn-sm" onclick="excluirOS('${o.id}')">🗑️</button>
+      </div>
+    </div>
+  </div>`).join(''):'<div class="empty"><div class="empty-ico">🔧</div><div class="empty-t">Nenhuma OS cadastrada</div></div>'}</div>`
+  const abertas=(DB.get(S.OS)||[]).filter(o=>o.status==='aberta'||o.status==='andamento').length
+  const b=document.getElementById('bdg-os')
+  if(b){b.style.display=abertas?'':'none';b.textContent=abertas}
+}
+
+function novaOSdeOrc(orcId){
+  const o=(DB.get(S.ORC)||[]).find(x=>x.id===orcId)
+  if(!o)return
+  editarOS(null,o)
+}
+
+function editarOS(id,orcPre){
+  const list=DB.get(S.OS)||[]
+  const orcs=DB.get(S.ORC)||[]
+  const clis=DB.get(S.CLI)||[]
+  const os=id?list.find(x=>x.id===id):null
+  const pre=orcPre||null
+  openModal(id?`OS ${osNumFmt(os.num)}`:'Nova Ordem de Serviço',`
+  <div class="fr c3">
+    <div class="fg"><label>Cliente *</label><select id="osCli">
+      <option value="">Selecionar...</option>
+      ${clis.map(c=>`<option value="${c.id}" ${(os?.cliId||pre?.cliId)===c.id?'selected':''}>${c.nome}</option>`).join('')}
+    </select></div>
+    <div class="fg"><label>Orçamento Vinculado</label><select id="osOrc">
+      <option value="">Nenhum</option>
+      ${orcs.map(o=>`<option value="${o.id}" ${(os?.orcId||pre?.id)===o.id?'selected':''}>${orcNumFmt(o.num)} — ${cliNome(o.cliId)}</option>`).join('')}
+    </select></div>
+    <div class="fg"><label>Status</label><select id="osStatus">
+      ${Object.entries(ST_OS).map(([k,s])=>`<option value="${k}" ${(os?.status||'aberta')===k?'selected':''}>${s.l}</option>`).join('')}
+    </select></div>
+  </div>
+  <div class="fr c3">
+    <div class="fg"><label>Data de Abertura</label><input id="osData" type="date" value="${os?.data||today()}"></div>
+    <div class="fg"><label>Data Prevista</label><input id="osDataPrev" type="date" value="${os?.dataPrev||''}"></div>
+    <div class="fg"><label>Técnico Responsável</label><input id="osTec" value="${os?.tecnico||getEmpresa().resp||''}"></div>
+  </div>
+  <div class="fr"><div class="fg"><label>Endereço da Execução</label><input id="osEnd" value="${os?.endObra||pre?.endObra||''}"></div></div>
+  <div class="fr c2">
+    <div class="fg"><label>Serviços / Materiais</label><textarea id="osServ" style="min-height:100px">${os?.servicos||''}</textarea></div>
+    <div class="fg"><label>Observações / Instruções</label><textarea id="osObs">${os?.obs||''}</textarea></div>
+  </div>`,
+  `<button class="btn btn-o btn-sm" onclick="closeModal()">Cancelar</button>
+   ${id?`<button class="btn btn-a btn-sm" onclick="imprimirOS('${id}')">🖨️ Imprimir</button>`:''}
+   <button class="btn btn-p btn-sm" onclick="salvarOS('${id||''}')">Salvar</button>`,true)
+}
+
+function salvarOS(id){
+  const cliId=v('osCli')
+  if(!cliId)return toast('Selecione um cliente','warn')
+  const list=DB.get(S.OS)||[]
+  const data={
+    id:id||genId(),num:id?list.find(x=>x.id===id)?.num||nextNum(list,'num'):nextNum(list,'num'),
+    cliId,orcId:v('osOrc'),status:v('osStatus'),data:v('osData'),
+    dataPrev:v('osDataPrev'),tecnico:v('osTec'),endObra:v('osEnd'),
+    servicos:v('osServ'),obs:v('osObs')
+  }
+  if(id){const i=list.findIndex(x=>x.id===id);if(i>=0)list[i]=data;else list.push(data)}else list.push(data)
+  DB.set(S.OS,list);closeModal();toast('OS salva');renderOS()
+}
+
+function excluirOS(id){
+  confirmarModal('Excluir esta OS?',()=>{DB.set(S.OS,(DB.get(S.OS)||[]).filter(x=>x.id!==id));toast('OS excluída');renderOS()})
+}
+
+// ── Estoque ──
+function renderEstoque(){
+  const prods=DB.get(S.PRO)||[]
+  const est=DB.get(S.EST)||{}
+  document.getElementById('content').innerHTML=`
+  <div class="sh"><div><div class="stitle">Estoque de Materiais</div><div class="ssub">Controle de quantidade em estoque</div></div></div>
+  <div class="tbl-wrap"><table class="tbl">
+    <thead><tr><th>Produto</th><th>Categoria</th><th>Qtd. em Estoque</th><th>Qtd. Mínima</th><th>Status</th><th></th></tr></thead>
+    <tbody>${prods.length?prods.map(p=>{
+      const e=est[p.id]||{qtd:0,min:0}
+      const alerta=e.qtd<=e.min&&e.min>0
+      return`<tr>
+        <td><div style="font-weight:600;color:var(--txt)">${p.nome}</div><div style="font-size:11px;color:var(--txt3)">${getAttrTags(p)}</div></td>
+        <td><span class="bdg bdg-b">${catIco(p.cat)} ${catNome(p.cat)}</span></td>
+        <td><span style="font-size:16px;font-weight:700;color:${alerta?'var(--dan)':'var(--suc)'}">${e.qtd||0}</span> ${p.un||'un'}</td>
+        <td style="color:var(--txt3)">${e.min||0} ${p.un||'un'}</td>
+        <td>${alerta?`<span class="bdg bdg-r">⚠️ Crítico</span>`:e.qtd>0?`<span class="bdg bdg-g">OK</span>`:`<span class="bdg bdg-gr">Sem estoque</span>`}</td>
+        <td><button class="btn btn-o btn-sm" onclick="ajustarEstoque('${p.id}')">Ajustar</button></td>
+      </tr>`}).join(''):'<tr><td colspan="6"><div class="empty"><div class="empty-ico">📦</div><div class="empty-t">Nenhum produto cadastrado</div><div class="empty-s">Cadastre produtos na aba "Produtos / Serviços"</div></div></td></tr>'}</tbody>
+  </table></div>`
+}
+
+function ajustarEstoque(prodId){
+  const p=(DB.get(S.PRO)||[]).find(x=>x.id===prodId)
+  if(!p)return
+  const est=DB.get(S.EST)||{}
+  const e=est[prodId]||{qtd:0,min:0}
+  openModal(`Estoque: ${p.nome}`,`
+  <div class="fr c2">
+    <div class="fg"><label>Quantidade em Estoque</label><input id="estQtd" type="number" min="0" value="${e.qtd||0}"></div>
+    <div class="fg"><label>Quantidade Mínima (alerta)</label><input id="estMin" type="number" min="0" value="${e.min||0}"></div>
+  </div>`,
+  `<button class="btn btn-o btn-sm" onclick="closeModal()">Cancelar</button>
+   <button class="btn btn-p btn-sm" onclick="salvarEstoque('${prodId}')">Salvar</button>`)
+}
+
+function salvarEstoque(prodId){
+  const est=DB.get(S.EST)||{}
+  est[prodId]={qtd:parseFloat(v('estQtd'))||0,min:parseFloat(v('estMin'))||0}
+  DB.set(S.EST,est);closeModal();toast('Estoque atualizado');renderEstoque()
+}
+
+// ── Financeiro ──
+const CAT_FIN={entrada:['Recebimento de OS','Recebimento de Orçamento','Adiantamento','Outros'],saida:['Materiais / Insumos','Ferramentas / Equipamentos','Combustível / Transporte','Impostos / Taxas','Salários / Mão de Obra','Outros']}
+
+function renderFinanceiro(){
+  const fins=DB.get(S.FIN)||[]
+  const sorted=[...fins].sort((a,b)=>b.data.localeCompare(a.data))
+  const entrada=fins.filter(f=>f.tipo==='entrada').reduce((a,f)=>a+(f.valor||0),0)
+  const saida=fins.filter(f=>f.tipo==='saida').reduce((a,f)=>a+(f.valor||0),0)
+  const saldo=entrada-saida
+  document.getElementById('content').innerHTML=`
+  <div class="sh"><div><div class="stitle">Financeiro</div></div><button class="btn btn-p" onclick="editarLancamento()">+ Lançamento</button></div>
+  <div class="g3" style="margin-bottom:16px">
+    <div class="card card-sm"><div class="metric-ico">💚</div><div class="metric-val" style="color:var(--suc)">${fmtR(entrada)}</div><div class="metric-lbl">Entradas</div></div>
+    <div class="card card-sm"><div class="metric-ico">🔴</div><div class="metric-val" style="color:var(--dan)">${fmtR(saida)}</div><div class="metric-lbl">Saídas</div></div>
+    <div class="card card-sm"><div class="metric-ico">${saldo>=0?'📈':'📉'}</div><div class="metric-val" style="color:${saldo>=0?'var(--suc)':'var(--dan)'}">${fmtR(Math.abs(saldo))}</div><div class="metric-lbl">Saldo ${saldo<0?'(Negativo)':''}</div></div>
+  </div>
+  <div class="tbl-wrap"><table class="tbl">
+    <thead><tr><th>Data</th><th>Tipo</th><th>Categoria</th><th>Descrição</th><th>Valor</th><th></th></tr></thead>
+    <tbody>${sorted.length?sorted.map(f=>`<tr>
+      <td style="font-size:12px;color:var(--txt3)">${fmtDate(f.data)}</td>
+      <td><span class="bdg ${f.tipo==='entrada'?'bdg-g':'bdg-r'}">${f.tipo==='entrada'?'↑ Entrada':'↓ Saída'}</span></td>
+      <td style="font-size:12px;color:var(--txt3)">${f.cat||'—'}</td>
+      <td style="font-weight:500">${f.desc||'—'}</td>
+      <td style="font-weight:700;color:${f.tipo==='entrada'?'var(--suc)':'var(--dan)'}">${f.tipo==='entrada'?'+':'-'}${fmtR(f.valor||0)}</td>
+      <td onclick="event.stopPropagation()" style="white-space:nowrap">
+        <button class="btn btn-g btn-ico" onclick="editarLancamento('${f.id}')">✏️</button>
+        <button class="btn btn-g btn-ico" onclick="excluirLancamento('${f.id}')">🗑️</button>
+      </td>
+    </tr>`).join(''):'<tr><td colspan="6"><div class="empty"><div class="empty-ico">💰</div><div class="empty-t">Nenhum lançamento</div></div></td></tr>'}</tbody>
+  </table></div>`
+}
+
+function editarLancamento(id){
+  const fins=DB.get(S.FIN)||[]
+  const f=id?fins.find(x=>x.id===id):null
+  const tipo=f?.tipo||'entrada'
+  openModal(id?'Editar Lançamento':'Novo Lançamento',`
+  <div class="fr c2">
+    <div class="fg"><label>Tipo *</label><select id="fTipo" onchange="updateCatFin()">
+      <option value="entrada" ${tipo==='entrada'?'selected':''}>↑ Entrada</option>
+      <option value="saida" ${tipo==='saida'?'selected':''}>↓ Saída</option>
+    </select></div>
+    <div class="fg"><label>Data *</label><input id="fData" type="date" value="${f?.data||today()}"></div>
+  </div>
+  <div class="fr c2">
+    <div class="fg"><label>Categoria</label><select id="fCat">
+      ${(CAT_FIN[tipo]||[]).map(c=>`<option ${f?.cat===c?'selected':''}>${c}</option>`).join('')}
+    </select></div>
+    <div class="fg"><label>Valor (R$) *</label><input id="fValor" type="number" step="0.01" min="0" value="${f?.valor||''}"></div>
+  </div>
+  <div class="fr"><div class="fg"><label>Descrição</label><input id="fDesc" value="${f?.desc||''}"></div></div>`,
+  `<button class="btn btn-o btn-sm" onclick="closeModal()">Cancelar</button>
+   <button class="btn btn-p btn-sm" onclick="salvarLancamento('${id||''}')">Salvar</button>`)
+}
+
+function updateCatFin(){
+  const tipo=v('fTipo')
+  const sel=document.getElementById('fCat')
+  if(sel)sel.innerHTML=(CAT_FIN[tipo]||[]).map(c=>`<option>${c}</option>`).join('')
+}
+
+function salvarLancamento(id){
+  const valor=parseFloat(v('fValor'))
+  if(!valor||valor<=0)return toast('Informe o valor','warn')
+  const fins=DB.get(S.FIN)||[]
+  const data={id:id||genId(),tipo:v('fTipo'),data:v('fData'),cat:v('fCat'),desc:v('fDesc'),valor}
+  if(id){const i=fins.findIndex(x=>x.id===id);if(i>=0)fins[i]=data;else fins.push(data)}else fins.push(data)
+  DB.set(S.FIN,fins);closeModal();toast('Lançamento salvo');renderFinanceiro()
+}
+
+function excluirLancamento(id){
+  confirmarModal('Excluir este lançamento?',()=>{DB.set(S.FIN,(DB.get(S.FIN)||[]).filter(x=>x.id!==id));toast('Lançamento excluído');renderFinanceiro()})
+}
+
+// ── Configurações ──
+function renderConfig(){
+  const e=getEmpresa()
+  const cfg=DB.get(S.CFG)||{}
+  const users=_getUsers()
+  const roleLabel={admin:'🔑 Admin (acesso total)',vendedor:'📋 Vendedor (só orçamentos)'}
+  document.getElementById('content').innerHTML=`
+  <div class="stitle" style="margin-bottom:16px">Configurações da Empresa</div>
+  <div class="card" style="max-width:720px;margin-bottom:16px">
+    <div class="fr c2">
+      <div class="fg"><label>Nome da Empresa *</label><input id="cfgNome" value="${e.nome||'AccertTech'}"></div>
+      <div class="fg"><label>Nome Fantasia</label><input id="cfgFantasia" value="${e.fantasia||''}"></div>
+    </div>
+    <div class="fr c2">
+      <div class="fg"><label>CNPJ / CPF</label><input id="cfgDoc" value="${e.doc||''}"></div>
+      <div class="fg"><label>CREA / Habilitação</label><input id="cfgCrea" value="${e.crea||''}"></div>
+    </div>
+    <div class="fr c3">
+      <div class="fg"><label>Telefone</label><input id="cfgFone" value="${e.fone||''}"></div>
+      <div class="fg"><label>WhatsApp</label><input id="cfgWa" value="${e.wa||''}"></div>
+      <div class="fg"><label>Email</label><input id="cfgEmail" value="${e.email||''}"></div>
+    </div>
+    <div class="fr c2">
+      <div class="fg"><label>Endereço</label><input id="cfgEnd" value="${e.end||''}"></div>
+      <div class="fg"><label>Responsável Técnico Padrão</label><input id="cfgResp" value="${e.resp||''}"></div>
+    </div>
+    <div class="fr"><div class="fg"><label>Observações padrão nos orçamentos</label><textarea id="cfgObs">${e.obsOrc||''}</textarea></div></div>
+    <button class="btn btn-p" onclick="salvarEmpresa()">Salvar Dados da Empresa</button>
+  </div>
+  <div class="sh" style="max-width:620px;margin-bottom:10px">
+    <div><div class="stitle">Usuários do Sistema</div><div class="ssub">Gerencie quem acessa o sistema e o nível de permissão</div></div>
+    <button class="btn btn-p btn-sm" onclick="editarUsuario()">+ Novo Usuário</button>
+  </div>
+  <div class="card" style="max-width:620px;margin-bottom:16px;padding:0">
+    <table class="tbl">
+      <thead><tr><th>Usuário</th><th>Nome</th><th>Perfil de Acesso</th><th></th></tr></thead>
+      <tbody>${users.map(u=>`<tr>
+        <td style="font-weight:700;color:var(--txt)">${u.user}</td>
+        <td>${u.nome||'—'}</td>
+        <td><span class="bdg ${u.role==='admin'?'bdg-y':'bdg-b'}">${roleLabel[u.role]||u.role}</span></td>
+        <td>${u.role!=='admin'?`<button class="btn btn-g btn-ico" onclick="editarUsuario('${u.user}')">✏️</button>
+            <button class="btn btn-g btn-ico" onclick="excluirUsuario('${u.user}')">🗑️</button>`:'<span style="color:var(--txt4);font-size:11px">protegido</span>'}</td>
+      </tr>`).join('')}</tbody>
+    </table>
+  </div>`
+}
+
+function editarUsuario(user){
+  const cfg=DB.get(S.CFG)||{}
+  const users=_getUsers()
+  const u=user?users.find(x=>x.user===user)||{}:{}
+  openModal(user?'Editar Usuário':'Novo Usuário',`
+  <div class="fr c2">
+    <div class="fg"><label>Login (usuário) *</label><input id="uUser" value="${u.user||''}" ${user?'readonly style="opacity:.6"':''}></div>
+    <div class="fg"><label>Nome de exibição *</label><input id="uNome" value="${u.nome||''}"></div>
+  </div>
+  <div class="fr c2">
+    <div class="fg"><label>${user?'Nova Senha (em branco = manter)':'Senha *'}</label><input id="uPass" type="password" placeholder="${user?'Deixe em branco para manter':''}"></div>
+    <div class="fg"><label>Perfil de Acesso</label><select id="uRole">
+      <option value="vendedor" ${(u.role||'vendedor')==='vendedor'?'selected':''}>📋 Vendedor — só vê seus orçamentos</option>
+      <option value="admin" ${u.role==='admin'?'selected':''}>🔑 Admin — acesso total</option>
+    </select></div>
+  </div>`,
+  `<button class="btn btn-o btn-sm" onclick="closeModal()">Cancelar</button>
+   <button class="btn btn-p btn-sm" onclick="salvarUsuario('${user||''}')">Salvar</button>`)
+}
+
+function salvarUsuario(editUser){
+  const userLogin=editUser||v('uUser').trim()
+  const nome=v('uNome').trim()
+  const pass=v('uPass')
+  const role=v('uRole')
+  if(!userLogin)return toast('Informe o login do usuário','warn')
+  if(!nome)return toast('Informe o nome','warn')
+  if(!editUser&&!pass)return toast('Informe a senha','warn')
+  const cfg=DB.get(S.CFG)||{}
+  const users=_getUsers()
+  const idx=users.findIndex(x=>x.user===userLogin)
+  const data={user:userLogin,nome,role,modules:role==='admin'?[]:['orcamentos']}
+  if(idx>=0){data.pass=pass||users[idx].pass;users[idx]=data}
+  else{if(users.find(x=>x.user===userLogin))return toast('Usuário já existe','warn');data.pass=pass;users.push(data)}
+  cfg.users=users
+  DB.set(S.CFG,cfg)
+  closeModal();toast('Usuário salvo');renderConfig()
+}
+
+function excluirUsuario(user){
+  confirmarModal(`Excluir o usuário <strong>${user}</strong>?`,()=>{
+    const cfg=DB.get(S.CFG)||{}
+    cfg.users=_getUsers().filter(x=>x.user!==user)
+    DB.set(S.CFG,cfg);toast('Usuário excluído');renderConfig()
+  })
+}
+
+function salvarEmpresa(){
+  const e={nome:v('cfgNome'),fantasia:v('cfgFantasia'),doc:v('cfgDoc'),crea:v('cfgCrea'),fone:v('cfgFone'),wa:v('cfgWa'),email:v('cfgEmail'),end:v('cfgEnd'),resp:v('cfgResp'),obsOrc:v('cfgObs')}
+  DB.set(S.EMP,e)
+  document.getElementById('topEmp').textContent=e.fantasia||e.nome
+  toast('Dados da empresa salvos')
+}
+
+
+// ── Print ──
+function docHead(titulo){
+  const e=getEmpresa()
+  return`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${titulo}</title><style>
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',Arial,sans-serif;background:#fff;color:#1A1A1A;font-size:12px;padding:20px}
+.hdr{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:14px;border-bottom:3px solid #1565C0;margin-bottom:14px}
+.hdr-l .co{font-size:20px;font-weight:900;color:#1565C0;letter-spacing:.5px}.hdr-l .sub{font-size:9px;color:#555;letter-spacing:1.5px;text-transform:uppercase;margin-top:2px}
+.hdr-r{text-align:right;font-size:10px;color:#555;line-height:1.9}
+.doc-title{background:#1565C0;color:#fff;padding:10px 16px;border-radius:6px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
+.doc-title .t{font-size:16px;font-weight:800;letter-spacing:.5px}.doc-title .n{font-size:22px;font-weight:900;color:#FFB300}
+.info-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1px;background:#e0e0e0;border:1px solid #e0e0e0;border-radius:6px;overflow:hidden;margin-bottom:12px}
+.ic{background:#fff;padding:8px 12px}.ic .lbl{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:2px}.ic .val{font-size:12px;font-weight:700;color:#1A1A1A}
+.ic.full{grid-column:1/-1;background:#EEF4FF}.ic.full .lbl{color:#1565C0}.ic.full .val{color:#1565C0;font-size:13px}
+.sec{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#1565C0;margin:14px 0 6px;padding-bottom:5px;border-bottom:1.5px solid #1565C0}
+table{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:12px}
+thead th{background:#1A2540;color:#fff;padding:7px 10px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase}
+tbody tr:nth-child(even){background:#F5F8FF}
+td{padding:7px 10px;border-bottom:1px solid #E0E0E0;vertical-align:top}
+.num{text-align:center;width:30px;color:#888;font-weight:700}.qtd{text-align:center}.pr{text-align:right}.sub{text-align:right;font-weight:700}
+.total-box{background:#1A2540;color:#fff;padding:10px 14px;border-radius:6px;display:flex;justify-content:flex-end;gap:24px;margin-bottom:12px;font-weight:700}
+.atag{display:inline-block;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:700;background:#EEF4FF;color:#1565C0;margin:1px}
+.local-tag{display:inline-block;padding:1px 5px;border-radius:3px;font-size:9px;background:#E8F5E9;color:#2E7D32;margin:1px}
+.obs-item{font-size:10px;color:#666;font-style:italic}
+.sigs{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px;padding-top:16px;border-top:1px solid #e0e0e0}
+.sig-box{text-align:center}.sig-line{border-top:1px solid #333;margin-top:40px;padding-top:6px;font-size:10px;color:#555}
+.footer{margin-top:16px;padding-top:10px;border-top:1px solid #e0e0e0;text-align:center;font-size:9px;color:#999}
+@media print{*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}}
+</style></head><body>
+<div class="hdr">
+  <div class="hdr-l"><div class="co">⚡ ${e.fantasia||e.nome||'AccertTech'}</div><div class="sub">Serviços Elétricos</div>${e.crea?`<div style="font-size:9px;color:#888;margin-top:2px">CREA: ${e.crea}</div>`:''}</div>
+  <div class="hdr-r">${[e.fone,e.wa,e.email,e.end].filter(Boolean).join('<br>')}</div>
+</div>`
+}
+
+async function imprimirDocAssinado(token){
+  try{
+    if(!_fdb){
+      if(!firebase.apps.length)firebase.initializeApp(_AT_FB)
+      _fdb=firebase.firestore()
+      _fdb.settings({experimentalForceLongPolling:true,merge:true})
+    }
+    const snap=await _fdb.collection('sigs').doc(token).get()
+    if(!snap.exists)return toast('Assinatura não encontrada','warn')
+    const sig=snap.data()
+    imprimirOrcamento(sig.orcId,sig)
+  }catch(e){toast('Erro ao carregar assinatura: '+e.message,'warn')}
+}
+
+async function imprimirOrcamento(id,sigData=null){
+  const o=(DB.get(S.ORC)||[]).find(x=>x.id===id);if(!o)return
+  if(!sigData&&o.sigToken){
+    try{
+      if(!_fdb){if(!firebase.apps.length)firebase.initializeApp(_AT_FB);_fdb=firebase.firestore();_fdb.settings({experimentalForceLongPolling:true,merge:true})}
+      const snap=await _fdb.collection('sigs').doc(o.sigToken).get()
+      if(snap.exists&&snap.data().signed)sigData=snap.data()
+    }catch(e){console.warn('sig fetch:',e)}
+  }
+  const cli=(DB.get(S.CLI)||[]).find(x=>x.id===o.cliId)||{}
+  const prods=DB.get(S.PRO)||[]
+  const e=getEmpresa()
+  const infoCells=[]
+  if(o.data)infoCells.push({l:'Data',v:fmtDate(o.data)})
+  if(o.validade)infoCells.push({l:'Válido até',v:fmtDate(o.validade)})
+  if(o.dataInicio)infoCells.push({l:'Início do Serviço',v:fmtDate(o.dataInicio)})
+  if(o.dataFim)infoCells.push({l:'Término do Serviço',v:fmtDate(o.dataFim)})
+  if(cli.nome)infoCells.push({l:'Cliente',v:cli.nome})
+  if(cli.fone)infoCells.push({l:'Telefone',v:cli.fone})
+  if(o.endObra)infoCells.push({l:'Endereço da Obra',v:o.endObra,full:true})
+  if(o.resp)infoCells.push({l:'Responsável Técnico',v:o.resp})
+  if(o.pgto)infoCells.push({l:'Pagamento',v:o.pgto})
+
+  const prodIdsComImg=(o.itens||[]).filter(it=>it.prodId&&it.prodId!=='_custom').map(it=>it.prodId)
+  await _loadProdImgs(prodIdsComImg)
+
+  const cats=[...new Set(o.itens.map(it=>it.cat||'outro'))]
+  let rowsHtml='',numGlobal=0
+  // Group by category
+  cats.forEach(cat=>{
+    const items=o.itens.filter(it=>(it.cat||'outro')===cat)
+    rowsHtml+=`<tr><td colspan="7" style="background:#EEF4FF;color:#1565C0;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;padding:6px 10px">${catIco(cat)} ${catNome(cat)}</td></tr>`
+    items.forEach(it=>{
+      numGlobal++
+      const prodAtual=it.prodId&&it.prodId!=='_custom'?prods.find(p=>p.id===it.prodId):null
+      const nomeImpresso=prodAtual?prodAtual.nome:it.nome
+      const imgSrc=it.prodId&&it.prodId!=='_custom'?_imgCache[it.prodId]:null
+      const itAtual=prodAtual?{...it,...prodAtual,prodId:it.prodId,nome:nomeImpresso,qtd:it.qtd,un:it.un,pu:it.pu,sub:it.sub,locais:it.locais,obs:it.obs,cat:it.cat}:it
+      const attrs=getAttrTagsForPrint(itAtual)
+      const locais=(it.locais||[]).map(l=>`<span class="local-tag">${l}</span>`).join(' ')
+      rowsHtml+=`<tr>
+        <td class="num">${numGlobal}</td>
+        <td><div style="display:flex;gap:8px;align-items:flex-start">${imgSrc?`<img src="${imgSrc}" style="width:52px;height:52px;object-fit:cover;border-radius:5px;flex-shrink:0;border:1px solid #e0e0e0">`:''}<div>${nomeImpresso||'—'}${attrs?`<br>${attrs}`:''}${locais?`<br>${locais}`:''}${it.obs?`<br><span class="obs-item">${it.obs}</span>`:''}</div></div></td>
+        <td class="qtd">${it.qtd||1}</td>
+        <td>${it.un||'un'}</td>
+        <td class="pr">${fmtR(it.pu||0)}</td>
+        <td class="sub">${fmtR(it.sub||0)}</td>
+      </tr>`
+    })
+  })
+
+  const w=window.open('','_blank','width=900,height=700')
+  w.document.write(docHead('ORÇAMENTO')+`
+  <div class="doc-title"><div class="t">ORÇAMENTO</div><div class="n">Nº ${orcNumFmt(o.num)}</div></div>
+  <div class="info-grid">${infoCells.map(c=>`<div class="ic${c.full?' full':''}"><div class="lbl">${c.l}</div><div class="val">${c.v}</div></div>`).join('')}</div>
+  <div class="sec">Itens do Orçamento</div>
+  <table><thead><tr><th class="num">#</th><th>Descrição</th><th class="qtd">Qtd.</th><th>Un.</th><th class="pr">Preço Unit.</th><th class="sub">Subtotal</th></tr></thead>
+  <tbody>${rowsHtml}</tbody></table>
+  <div class="total-box">
+    <span>Subtotal: ${fmtR(o.sub||0)}</span>
+    ${o.desc?`<span style="color:#FF8A80">Desconto: -${fmtR(o.desc)}</span>`:''}
+    <span style="font-size:15px;color:#FFB300">TOTAL: ${fmtR(o.totalF||0)}</span>
+  </div>
+  ${o.pgto?`<div style="margin-bottom:10px"><strong>Pagamento:</strong> ${o.pgto}</div>`:''}
+  ${o.obs?`<div style="background:#FFF8E1;border:1px solid #FFE082;border-radius:6px;padding:10px 14px;font-size:11px;margin-bottom:12px"><strong>Observações:</strong><br>${o.obs}</div>`:''}
+  ${(e.obsOrc)?`<div style="font-size:10px;color:#666;margin-bottom:12px">${e.obsOrc}</div>`:''}
+  ${sigData?.signed?`
+  <div style="background:#F1F8E9;border:1px solid #A5D6A7;border-radius:8px;padding:12px 16px;margin-bottom:12px;font-size:11px">
+    <strong style="color:#2E7D32">✅ Documento aprovado com assinatura digital</strong>
+    <span style="color:#555;margin-left:10px">${sigData.signedAt?'em '+new Date(sigData.signedAt).toLocaleString('pt-BR'):''}</span>
+    ${sigData.signedIp||sigData.signedDevice?`<div style="margin-top:6px;color:#555;font-size:10px">${sigData.signedIp?'IP: '+sigData.signedIp:''}${sigData.signedIp&&sigData.signedDevice?' · ':''}${sigData.signedDevice||''}</div>`:''}
+  </div>`:''}
+  <div class="sigs">
+    <div class="sig-box"><div class="sig-line">${e.fantasia||e.nome||'AccertTech'} — Responsável Técnico</div></div>
+    <div class="sig-box" style="text-align:center">
+      ${sigData?.signed&&sigData.signedImg?`<img src="${sigData.signedImg}" style="max-height:70px;max-width:220px;display:block;margin:0 auto 4px">`:
+        sigData?.signed&&sigData.signedNome?`<div style="font-size:16px;font-family:cursive;color:#1a237e;padding:10px 0">${sigData.signedNome}</div>`:'<div style="height:50px"></div>'}
+      <div class="sig-line">Cliente — ${cli.nome||'_____________________'}</div>
+    </div>
+  </div>
+  <div class="footer">Este orçamento é válido até ${fmtDate(o.validade||'')}. Após aprovação, gerar Ordem de Serviço.</div>
+  </body></html>`)
+  w.document.close();setTimeout(()=>w.print(),600)
+}
+
+function getAttrTagsForPrint(p){
+  const tags=[]
+  if(p.cor)tags.push(`<span class="atag">Cor: ${p.cor}</span>`)
+  if(p.botoes)tags.push(`<span class="atag">${p.botoes} bot${parseInt(p.botoes)>1?'ões':'ão'}</span>`)
+  if(p.temTomada)tags.push(`<span class="atag">c/ tomada</span>`)
+  if(p.wifi)tags.push(`<span class="atag">Wi-Fi</span>`)
+  if(p.bitola)tags.push(`<span class="atag">Bitola: ${p.bitola}mm²</span>`)
+  if(p.tipoCabo)tags.push(`<span class="atag">${p.tipoCabo}</span>`)
+  if(p.material)tags.push(`<span class="atag">${p.material}</span>`)
+  if(p.potencia)tags.push(`<span class="atag">${p.potencia}</span>`)
+  if(p.tempCor)tags.push(`<span class="atag">${p.tempCor}</span>`)
+  if(p.corrente)tags.push(`<span class="atag">${p.corrente}</span>`)
+  if(p.polo)tags.push(`<span class="atag">${p.polo}</span>`)
+  if(p.voltagem)tags.push(`<span class="atag">${p.voltagem}</span>`)
+  if(p.diametro)tags.push(`<span class="atag">Ø${p.diametro}mm</span>`)
+  if(p.polos)tags.push(`<span class="atag">${p.polos} polos</span>`)
+  if(p.tipoServico)tags.push(`<span class="atag">${p.tipoServico}</span>`)
+  return tags.join('')
+}
+
+function imprimirOS(id){
+  const o=(DB.get(S.OS)||[]).find(x=>x.id===id);if(!o)return
+  const cli=(DB.get(S.CLI)||[]).find(x=>x.id===o.cliId)||{}
+  const orc=(DB.get(S.ORC)||[]).find(x=>x.id===o.orcId)
+  const w=window.open('','_blank','width=900,height=700')
+  w.document.write(docHead('ORDEM DE SERVIÇO')+`
+  <div class="doc-title"><div class="t">ORDEM DE SERVIÇO</div><div class="n">${osNumFmt(o.num)}</div></div>
+  <div class="info-grid">
+    <div class="ic"><div class="lbl">Data de Abertura</div><div class="val">${fmtDate(o.data)}</div></div>
+    <div class="ic"><div class="lbl">Data Prevista</div><div class="val">${fmtDate(o.dataPrev)||'—'}</div></div>
+    <div class="ic"><div class="lbl">Status</div><div class="val">${(ST_OS[o.status]||{l:o.status}).l}</div></div>
+    <div class="ic"><div class="lbl">Técnico</div><div class="val">${o.tecnico||'—'}</div></div>
+    <div class="ic"><div class="lbl">Cliente</div><div class="val">${cli.nome||'—'}</div></div>
+    <div class="ic"><div class="lbl">Telefone</div><div class="val">${cli.fone||'—'}</div></div>
+    ${o.orcId?`<div class="ic"><div class="lbl">Orçamento Vinculado</div><div class="val">${orcNumFmt(orc?.num||0)}</div></div>`:''}
+    ${o.endObra?`<div class="ic full"><div class="lbl">Endereço de Execução</div><div class="val">${o.endObra}</div></div>`:''}
+  </div>
+  ${o.servicos?`<div class="sec">Serviços / Materiais</div><div style="background:#F5F5F5;border-radius:6px;padding:12px;white-space:pre-line;font-size:12px;margin-bottom:12px">${o.servicos}</div>`:''}
+  ${o.obs?`<div class="sec">Observações / Instruções</div><div style="background:#FFF8E1;border:1px solid #FFE082;border-radius:6px;padding:10px 14px;font-size:11px;margin-bottom:12px">${o.obs}</div>`:''}
+  <div class="sec">Checklist de Execução</div>
+  <div style="height:120px;border:1px solid #e0e0e0;border-radius:6px;padding:10px;margin-bottom:12px;font-size:11px;color:#999">Uso interno — registre aqui os pontos verificados durante a execução.</div>
+  <div class="sigs">
+    <div class="sig-box"><div class="sig-line">Técnico Responsável — ${o.tecnico||'_____________________'}</div></div>
+    <div class="sig-box"><div class="sig-line">Cliente / Responsável — ${cli.nome||'_____________________'}</div></div>
+  </div>
+  <div class="footer">OS ${osNumFmt(o.num)} — ${getEmpresa().fantasia||getEmpresa().nome||'AccertTech'}</div>
+  </body></html>`)
+  w.document.close();setTimeout(()=>w.print(),600)
+}
+
+function imprimirRomaneio(id){
+  const o=(DB.get(S.ORC)||[]).find(x=>x.id===id);if(!o)return
+  const cli=(DB.get(S.CLI)||[]).find(x=>x.id===o.cliId)||{}
+  const e=getEmpresa()
+  const prods=DB.get(S.PRO)||[]
+  // Agrupa itens por categoria
+  const cats=[...new Set((o.itens||[]).map(it=>it.cat||'outro'))]
+  let numGlobal=0,rowsHtml=''
+  cats.forEach(cat=>{
+    if(cats.length>1)rowsHtml+=`<tr><td colspan="5" style="background:#EEF4FF;color:#1565C0;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;padding:5px 8px">${catIco(cat)} ${catNome(cat)}</td></tr>`
+    ;(o.itens||[]).filter(it=>(it.cat||'outro')===cat).forEach(it=>{
+      numGlobal++
+      const prodAtual=it.prodId&&it.prodId!=='_custom'?prods.find(p=>p.id===it.prodId):null
+      const nome=prodAtual?prodAtual.nome:it.nome
+      const itAtual=prodAtual?{...it,...prodAtual,prodId:it.prodId,nome}:it
+      const attrs=getAttrTagsForPrint(itAtual)
+      const locais=(it.locais||[]).map(l=>`<span style="display:inline-block;padding:1px 5px;border-radius:3px;font-size:9px;background:#E8F5E9;color:#2E7D32;margin:1px">${l}</span>`).join(' ')
+      rowsHtml+=`<tr>
+        <td style="text-align:center;color:#555;font-size:11px">${numGlobal}</td>
+        <td>${nome||'—'}${attrs?`<br>${attrs}`:''}${locais?`<br>${locais}`:''}${it.obs?`<br><span style="font-size:9px;color:#888;font-style:italic">${it.obs}</span>`:''}</td>
+        <td style="text-align:center;font-weight:700">${it.qtd||1}</td>
+        <td style="text-align:center;color:#555">${it.un||'un'}</td>
+        <td style="text-align:center"><div style="width:18px;height:18px;border:1.5px solid #aaa;border-radius:3px;margin:0 auto"></div></td>
+      </tr>`
+    })
+  })
+  const w=window.open('','_blank','width=860,height=700')
+  w.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Romaneio − ${orcNumFmt(o.num)}</title><style>
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',Arial,sans-serif;background:#fff;color:#1A1A1A;font-size:12px;padding:22px}
+.hdr{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1565C0;padding-bottom:10px;margin-bottom:14px}
+.co{font-size:16px;font-weight:800;color:#1565C0}.sub{font-size:10px;color:#888;margin-top:2px}
+.doc-title{text-align:right}.doc-title .t{font-size:18px;font-weight:800;color:#1565C0;text-transform:uppercase;letter-spacing:1px}
+.doc-title .n{font-size:12px;color:#555;margin-top:2px}
+.info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:#F5F8FF;border:1px solid #D0DFFF;border-radius:6px;padding:10px;margin-bottom:14px}
+.ic{}.lbl{font-size:9px;font-weight:700;color:#1565C0;text-transform:uppercase;letter-spacing:.5px}.val{font-size:11px;color:#1A1A1A;margin-top:1px}
+.full{grid-column:1/-1}
+.sec{font-size:10px;font-weight:700;color:#1565C0;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;border-bottom:1px solid #e0e0e0;padding-bottom:4px;margin-top:12px}
+table{width:100%;border-collapse:collapse;margin-bottom:14px}
+thead th{background:#1565C0;color:#fff;padding:6px 8px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+tbody tr:nth-child(even){background:#F5F8FF}
+tbody td{padding:7px 8px;border-bottom:1px solid #e8e8e8;vertical-align:middle;font-size:11px}
+.atag{display:inline-block;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:700;background:#EEF4FF;color:#1565C0;margin:1px}
+.sigs{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-top:24px;padding-top:14px;border-top:1px solid #ccc}
+.sig-box{text-align:center}.sig-line{border-top:1px solid #333;padding-top:6px;font-size:10px;color:#555;margin-top:48px}
+.footer{margin-top:14px;text-align:center;font-size:9px;color:#aaa;border-top:1px solid #eee;padding-top:8px}
+@media print{*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}}
+</style></head><body>
+<div class="hdr">
+  <div><div class="co">⚡ ${e.fantasia||e.nome||'AccertTech'}</div><div class="sub">${[e.fone,e.email,e.crea?'CREA: '+e.crea:''].filter(Boolean).join(' · ')}</div></div>
+  <div class="doc-title"><div class="t">Romaneio de Entrega</div><div class="n">Ref.: ${orcNumFmt(o.num)} · ${fmtDate(today())}</div></div>
+</div>
+<div class="info-grid">
+  <div class="ic"><div class="lbl">Cliente</div><div class="val">${cli.nome||'—'}</div></div>
+  <div class="ic"><div class="lbl">Telefone</div><div class="val">${cli.fone||'—'}</div></div>
+  <div class="ic"><div class="lbl">Data do Orçamento</div><div class="val">${fmtDate(o.data)}</div></div>
+  ${o.endObra?`<div class="ic full"><div class="lbl">Endereço da Obra</div><div class="val">${o.endObra}</div></div>`:''}
+  ${cli.end?`<div class="ic full"><div class="lbl">Endereço do Cliente</div><div class="val">${cli.end}</div></div>`:''}
+  ${o.resp?`<div class="ic"><div class="lbl">Responsável Técnico</div><div class="val">${o.resp}</div></div>`:''}
+  ${o.dataInicio?`<div class="ic"><div class="lbl">Início do Serviço</div><div class="val">${fmtDate(o.dataInicio)}</div></div>`:''}
+  ${o.dataFim?`<div class="ic"><div class="lbl">Término Previsto</div><div class="val">${fmtDate(o.dataFim)}</div></div>`:''}
+</div>
+<div class="sec">Materiais / Produtos</div>
+<table>
+  <thead><tr><th style="width:30px">#</th><th style="text-align:left">Descrição</th><th style="width:52px">Qtd.</th><th style="width:42px">Un.</th><th style="width:38px">✓</th></tr></thead>
+  <tbody>${rowsHtml}</tbody>
+</table>
+${o.obs?`<div class="sec">Observações / Condições Gerais</div><div style="background:#FFF8E1;border:1px solid #FFE082;border-radius:5px;padding:8px 12px;font-size:11px;margin-bottom:12px;white-space:pre-line">${o.obs}</div>`:''}
+<div style="background:#FFF8E1;border:1px solid #FFE082;border-radius:5px;padding:8px 12px;font-size:10px;margin-bottom:14px">
+  <strong>Atenção:</strong> Confira todos os materiais antes de assinar o recebimento. Qualquer divergência deve ser anotada abaixo.
+</div>
+<div class="sec">Observações / Divergências</div>
+<div style="border:1px solid #e0e0e0;border-radius:5px;padding:8px 12px;margin-bottom:18px;min-height:55px"></div>
+<div class="sigs">
+  <div class="sig-box">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Entregue por</div>
+    <div class="sig-line">${e.fantasia||e.nome||'AccertTech'}</div>
+    <div style="font-size:10px;color:#888;margin-top:6px">Data: ____/____/______</div>
+  </div>
+  <div class="sig-box">
+    <div style="font-size:10px;color:#888;margin-bottom:4px">Recebido por</div>
+    <div class="sig-line">${cli.nome||'_____________________'}</div>
+    <div style="font-size:10px;color:#888;margin-top:6px">Data: ____/____/______&nbsp;&nbsp;Hora: ____:____</div>
+  </div>
+</div>
+<div class="footer">Romaneio gerado em ${new Date().toLocaleString('pt-BR')} · ${orcNumFmt(o.num)} · ${e.fantasia||e.nome||'AccertTech'}</div>
+</body></html>`)
+  w.document.close();setTimeout(()=>w.print(),500)
+}
+
+// ── Helpers ──
+function v(id){const el=document.getElementById(id);return el?el.value:''}
+
+// ── Chat ──
+let _chatUnsub=null,_chatMsgs=[],_chatUnread=0
+
+function _escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function renderChat(){
+  const myUser=currentUser().user
+  const admin=isAdmin()
+  let html='',lastDay=''
+  _chatMsgs.forEach(m=>{
+    const d=new Date(m.ts)
+    const day=d.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'})
+    if(day!==lastDay){html+=`<div class="chat-day-sep">${day}</div>`;lastDay=day}
+    const isMe=m.from===myUser
+    const canDel=isMe||admin
+    const time=d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})
+    const delBtn=canDel?`<button onclick="apagarMsgChat('${m.id}')" title="Apagar" style="background:none;border:none;cursor:pointer;color:var(--txt4);font-size:16px;padding:6px 8px;opacity:.7;flex-shrink:0;align-self:center;-webkit-tap-highlight-color:transparent">🗑️</button>`:''
+    html+=`<div style="display:flex;align-items:flex-end;gap:4px;justify-content:${isMe?'flex-end':'flex-start'}">
+      ${!isMe?delBtn:''}
+      <div class="chat-row ${isMe?'chat-row-me':'chat-row-them'}">
+        ${!isMe?`<div class="chat-sender">${_escHtml(m.fromNome||m.from)}</div>`:''}
+        <div class="chat-bubble ${isMe?'chat-mine':'chat-theirs'}">${_escHtml(m.text)}</div>
+        <div class="chat-time">${time}</div>
+      </div>
+      ${isMe?delBtn:''}
+    </div>`
+  })
+  document.getElementById('content').innerHTML=`
+  <div class="chat-wrap">
+    <div class="chat-msgs" id="chatMsgs">${html||'<div class="chat-empty">Nenhuma mensagem ainda.<br>Diga olá! 👋</div>'}</div>
+    <div class="chat-bar">
+      <input id="chatInput" placeholder="Digite uma mensagem..." maxlength="1000" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMsg()}">
+      <button class="btn btn-p" onclick="sendChatMsg()" style="flex-shrink:0">Enviar</button>
+    </div>
+  </div>`
+  _requestNotifPerm()
+  _markChatRead()
+  setTimeout(()=>{const el=document.getElementById('chatMsgs');if(el)el.scrollTop=el.scrollHeight},60)
+}
+
+function apagarMsgChat(id){
+  confirmarModal('Apagar esta mensagem?',async()=>{
+    if(!_fdb)return
+    try{await _fdb.collection('at_chat').doc(id).delete()}
+    catch(e){toast('Erro ao apagar','warn')}
+  })
+}
+
+async function sendChatMsg(){
+  const inp=document.getElementById('chatInput')
+  if(!inp||!_fdb)return
+  const text=inp.value.trim()
+  if(!text)return
+  const u=currentUser()
+  inp.value=''
+  inp.focus()
+  try{await _fdb.collection('at_chat').add({from:u.user,fromNome:u.nome||u.user,text,ts:Date.now()})}
+  catch(e){toast('Erro ao enviar','warn');inp.value=text}
+}
+
+function _initChatListener(){
+  if(_chatUnsub||!_fdb)return
+  const me=currentUser().user
+  _chatUnsub=_fdb.collection('at_chat').orderBy('ts','asc').onSnapshot(snap=>{
+    const lastRead=parseInt(localStorage.getItem('chat_lr_'+me)||'0')
+    const prev=_chatMsgs.length
+    _chatMsgs=snap.docs.map(d=>({id:d.id,...d.data()}))
+    const novas=_chatMsgs.filter(m=>m.ts>lastRead&&m.from!==me)
+    _chatUnread=novas.length
+    updateChatBadge()
+    if(_page==='chat'){renderChat()}
+    else if(_chatMsgs.length>prev&&novas.length>0){_chatNotify(novas[novas.length-1])}
+  },()=>{})
+}
+
+function _markChatRead(){
+  const me=currentUser().user
+  const lastTs=_chatMsgs.length?Math.max(..._chatMsgs.map(m=>m.ts)):Date.now()
+  localStorage.setItem('chat_lr_'+me,String(lastTs))
+  _chatUnread=0
+  updateChatBadge()
+}
+
+function updateChatBadge(){
+  const b=document.getElementById('bdg-chat')
+  if(b){b.style.display=_chatUnread?'':'none';b.textContent=_chatUnread}
+  const bm=document.getElementById('bdg-chat-mob')
+  if(bm){bm.style.display=_chatUnread?'':'none';bm.textContent=_chatUnread}
+}
+
+async function _chatNotify(msg){
+  if(!('Notification' in window)||Notification.permission!=='granted')return
+  try{
+    const sw=await navigator.serviceWorker.ready
+    sw.showNotification('💬 '+(msg.fromNome||msg.from),{
+      body:msg.text,icon:'icons/icon.svg',badge:'icons/icon.svg',
+      tag:'chat-msg',renotify:true,vibrate:[150,80,150]
+    })
+  }catch(e){}
+}
+
+async function _requestNotifPerm(){
+  if('Notification' in window&&Notification.permission==='default'){
+    const p=await Notification.requestPermission()
+    if(p==='granted')toast('Notificações ativadas ✓','ok')
+  }
+}
+
+// ── Init ──
+function initApp(){
+  const e=getEmpresa()
+  const u=currentUser()
+  // Garante usuário Alvaro cadastrado por padrão
+  const cfg=DB.get(S.CFG)||{}
+  if(!cfg.users){
+    cfg.users=[
+      {user:cfg.user||'admin',pass:cfg.pass||'1234',role:'admin',nome:'Admin'},
+      {user:'alvaro',pass:'alvaro2026',role:'vendedor',nome:'Alvaro',modules:['orcamentos']}
+    ]
+    DB.set(S.CFG,cfg)
+  }else if(!cfg.users.find(x=>x.user==='alvaro')){
+    cfg.users.push({user:'alvaro',pass:'alvaro2026',role:'vendedor',nome:'Alvaro',modules:['orcamentos']})
+    DB.set(S.CFG,cfg)
+  }
+  // Topbar: empresa + usuário logado
+  const topEmp=document.getElementById('topEmp')
+  if(topEmp)topEmp.textContent=(e.fantasia||e.nome||'AccertTech')+' — '+( u.nome||u.user||'')
+  // Restringe menu para não-admin
+  if(!isAdmin()){
+    document.querySelectorAll('.sb-item').forEach(el=>{
+      if(el.id&&el.id!=='sb-orcamentos'&&el.id!=='sb-chat')el.style.display='none'
+    })
+    document.querySelectorAll('.sb-sec').forEach(el=>el.style.display='none')
+    document.querySelector('.sb-bot').style.display='flex'
+  }
+  nav(isAdmin()?'dashboard':'orcamentos')
+  updateBadges()
+  _initFirebase().then(()=>{if(_syncEnabled){nav(_page)};_initChatListener()})
+}
+
+function updateBadges(){
+  const pendentes=(DB.get(S.ORC)||[]).filter(o=>o.status==='enviado').length
+  const bo=document.getElementById('bdg-orc')
+  if(bo){bo.style.display=pendentes?'':'none';bo.textContent=pendentes}
+  const abertas=(DB.get(S.OS)||[]).filter(o=>o.status==='aberta'||o.status==='andamento').length
+  const bos=document.getElementById('bdg-os')
+  if(bos){bos.style.display=abertas?'':'none';bos.textContent=abertas}
+  updateChatBadge()
+}
+
+let _cfgReady=null
+document.addEventListener('DOMContentLoaded',()=>{
+  const sigToken=new URLSearchParams(location.search).get('sig')
+  if(sigToken){
+    document.getElementById('loginOv').style.display='none'
+    document.getElementById('sigPage').style.display='block'
+    _loadSigPage(sigToken)
+    return
+  }
+  if(sessionStorage.getItem('at_ok')){
+    document.getElementById('loginOv').style.display='none'
+    document.getElementById('app').style.display='flex'
+    initApp()
+  }else{
+    // Pré-carrega config do Firebase antes do login
+    _cfgReady=_preLoadCfg().catch(e=>{console.warn('preload err:',e)})
+    const el=document.getElementById('loginInfo')
+    if(el){el.textContent='🔄 Conectando...';el.style.color='#aaa'}
+    _cfgReady.then(()=>{if(el)el.textContent=''})
+    document.getElementById('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()})
+  }
+})
+</script>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js').catch(()=>{})})
+  navigator.serviceWorker.addEventListener('message',e=>{if(e.data?.type==='openChat')nav('chat')})
+}
+</script>
+</body>
+</html>
