@@ -991,7 +991,7 @@ async function _assinarOrcamento(token){
   const signedUA=navigator.userAgent||''
   if(btn)btn.textContent='Assinando...'
   try{
-    await _fdb.collection('sigs').doc(token).update({signed:true,signedAt:Date.now(),signedImg:imgData,signedNome:null,signedIp,signedDevice,signedUA})
+    await _fdb.collection('sigs').doc(token).set({signed:true,signedAt:Date.now(),signedImg:imgData,signedNome:null,signedIp,signedDevice,signedUA},{merge:true})
     const snap=await _fdb.collection('sigs').doc(token).get()
     const sigData=snap.data()
     // Atualiza status do orçamento para "aprovado" no banco central
@@ -1043,17 +1043,24 @@ async function gerarLinkAssinatura(orcId){
         const itensAtualizados=_nomesAtuais(sigAtual.orc?.itens)
         const orcAtualizado={...sigAtual.orc,itens:itensAtualizados,
           totalF:o.totalF||0,sub:o.sub||0,desc:o.desc||0,pgto:o.pgto||'',obs:o.obs||'',endObra:o.endObra||'',dataInicio:o.dataInicio||'',dataFim:o.dataFim||''}
+        // Auto-fix: orçamento aprovado localmente mas sig ainda como não-assinado
+        const orcJaAprovado=!sigAtual.signed&&(o.status==='aprovado'||o.status==='executado')
         const sigAtualizado={...sigAtual,orc:orcAtualizado,
           empresa:{nome:emp.nome,fantasia:emp.fantasia,fone:emp.fone,wa:emp.wa||''},
           cli:{nome:cli.nome||'',fone:cli.fone||''}}
-        if(!sigAtual.signed)await _fdb.collection('sigs').doc(token).update({orc:orcAtualizado,empresa:sigAtualizado.empresa,cli:sigAtualizado.cli})
-        // Se já está assinado, atualiza status local para "aprovado"
-        if(sigAtual.signed){
+        if(!sigAtual.signed){
+          const updateData={orc:orcAtualizado,empresa:sigAtualizado.empresa,cli:sigAtualizado.cli}
+          if(orcJaAprovado){updateData.signed=true;updateData.signedAt=sigAtual.signedAt||Date.now()}
+          await _fdb.collection('sigs').doc(token).update(updateData)
+        }
+        // Se já está assinado (ou foi auto-corrigido), atualiza status local para "aprovado"
+        if(sigAtual.signed||orcJaAprovado){
           const llist=DB.get(S.ORC)||[]
           const lidx=llist.findIndex(x=>x.id===orcId)
           if(lidx>=0&&llist[lidx].status!=='aprovado'){llist[lidx].status='aprovado';DB.set(S.ORC,llist);renderOrcamentos()}
         }
-        _showSigModal(token,sigAtualizado);return
+        const sigParaModal=orcJaAprovado?{...sigAtualizado,signed:true,signedAt:sigAtual.signedAt||Date.now()}:sigAtualizado
+        _showSigModal(token,sigParaModal);return
       }
     }
     // Gera token de 8 chars base-36
