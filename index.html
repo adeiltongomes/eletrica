@@ -2668,23 +2668,7 @@ async function _requestNotifPerm(){
 
 // ── Init ──
 function initApp(){
-  const e=getEmpresa()
   const u=currentUser()
-  // Garante usuário Alvaro cadastrado por padrão
-  const cfg=DB.get(S.CFG)||{}
-  if(!cfg.users){
-    cfg.users=[
-      {user:cfg.user||'admin',pass:cfg.pass||'1234',role:'admin',nome:'Admin'},
-      {user:'alvaro',pass:'alvaro2026',role:'vendedor',nome:'Alvaro',modules:['orcamentos']}
-    ]
-    DB.set(S.CFG,cfg)
-  }else if(!cfg.users.find(x=>x.user==='alvaro')){
-    cfg.users.push({user:'alvaro',pass:'alvaro2026',role:'vendedor',nome:'Alvaro',modules:['orcamentos']})
-    DB.set(S.CFG,cfg)
-  }
-  // Topbar: empresa + usuário logado
-  const topEmp=document.getElementById('topEmp')
-  if(topEmp)topEmp.textContent=(e.fantasia||e.nome||'AccertTech')+' — '+( u.nome||u.user||'')
   // Restringe menu para não-admin
   if(!isAdmin()){
     document.querySelectorAll('.sb-item').forEach(el=>{
@@ -2693,9 +2677,43 @@ function initApp(){
     document.querySelectorAll('.sb-sec').forEach(el=>el.style.display='none')
     document.querySelector('.sb-bot').style.display='flex'
   }
-  nav(isAdmin()?'dashboard':'orcamentos')
-  updateBadges()
-  _initFirebase().then(()=>{if(_syncEnabled){nav(_page)};_initChatListener()})
+  // Tela de carregamento — aguarda Firestore antes de renderizar
+  document.getElementById('content').innerHTML=`
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:65vh;gap:18px">
+      <div style="font-size:40px">⚡</div>
+      <div style="color:var(--txt2);font-size:15px;font-weight:600">Carregando dados...</div>
+      <div style="color:var(--txt4);font-size:12px">Conectando ao servidor</div>
+    </div>`
+  _initFirebase().then(()=>{
+    // Firestore carregado — agora popula dados e renderiza
+    const e=getEmpresa()
+    const topEmp=document.getElementById('topEmp')
+    if(topEmp)topEmp.textContent=(e.fantasia||e.nome||'AccertTech')+' — '+(u.nome||u.user||'')
+    // Garante usuário Alvaro cadastrado por padrão
+    const cfg=DB.get(S.CFG)||{}
+    if(!cfg.users){
+      cfg.users=[
+        {user:cfg.user||'admin',pass:cfg.pass||'1234',role:'admin',nome:'Admin'},
+        {user:'alvaro',pass:'alvaro2026',role:'vendedor',nome:'Alvaro',modules:['orcamentos']}
+      ]
+      DB.set(S.CFG,cfg)
+    }else if(!cfg.users.find(x=>x.user==='alvaro')){
+      cfg.users.push({user:'alvaro',pass:'alvaro2026',role:'vendedor',nome:'Alvaro',modules:['orcamentos']})
+      DB.set(S.CFG,cfg)
+    }
+    nav(isAdmin()?'dashboard':'orcamentos')
+    updateBadges()
+    _initChatListener()
+  }).catch(()=>{
+    document.getElementById('content').innerHTML=`
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:65vh;gap:16px">
+        <div style="font-size:40px">⚠️</div>
+        <div style="color:var(--dan);font-size:15px;font-weight:700">Sem conexão com o servidor</div>
+        <div style="color:var(--txt3);font-size:12px;text-align:center;max-width:260px">Verifique sua internet e recarregue a página.</div>
+        <button class="btn btn-p" style="margin-top:4px" onclick="location.reload()">🔄 Recarregar</button>
+      </div>`
+    _initChatListener()
+  })
 }
 
 function updateBadges(){
